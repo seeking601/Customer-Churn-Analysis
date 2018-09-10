@@ -1,0 +1,2188 @@
+AtCo Customer Churn Analysis and Prediction
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+df1 = pd.read_csv('ml_case_training_data.csv')
+#df1.shape
+df1.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 16096 entries, 0 to 16095
+Data columns (total 32 columns):
+id                          16096 non-null object
+activity_new                6551 non-null object
+campaign_disc_ele           0 non-null float64
+channel_sales               11878 non-null object
+cons_12m                    16096 non-null int64
+cons_gas_12m                16096 non-null int64
+cons_last_month             16096 non-null int64
+date_activ                  16096 non-null object
+date_end                    16094 non-null object
+date_first_activ            3508 non-null object
+date_modif_prod             15939 non-null object
+date_renewal                16056 non-null object
+forecast_base_bill_ele      3508 non-null float64
+forecast_base_bill_year     3508 non-null float64
+forecast_bill_12m           3508 non-null float64
+forecast_cons               3508 non-null float64
+forecast_cons_12m           16096 non-null float64
+forecast_cons_year          16096 non-null int64
+forecast_discount_energy    15970 non-null float64
+forecast_meter_rent_12m     16096 non-null float64
+forecast_price_energy_p1    15970 non-null float64
+forecast_price_energy_p2    15970 non-null float64
+forecast_price_pow_p1       15970 non-null float64
+has_gas                     16096 non-null object
+imp_cons                    16096 non-null float64
+margin_gross_pow_ele        16083 non-null float64
+margin_net_pow_ele          16083 non-null float64
+nb_prod_act                 16096 non-null int64
+net_margin                  16081 non-null float64
+num_years_antig             16096 non-null int64
+origin_up                   16009 non-null object
+pow_max                     16093 non-null float64
+dtypes: float64(16), int64(6), object(10)
+memory usage: 3.3+ MB
+df2 = pd.read_csv('ml_case_training_hist_data.csv')
+df2.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 193002 entries, 0 to 193001
+Data columns (total 8 columns):
+id              193002 non-null object
+price_date      193002 non-null object
+price_p1_var    191643 non-null float64
+price_p2_var    191643 non-null float64
+price_p3_var    191643 non-null float64
+price_p1_fix    191643 non-null float64
+price_p2_fix    191643 non-null float64
+price_p3_fix    191643 non-null float64
+dtypes: float64(6), object(2)
+memory usage: 10.3+ MB
+df3 = pd.read_csv('ml_case_training_output.csv')
+df3.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 16096 entries, 0 to 16095
+Data columns (total 2 columns):
+id       16096 non-null object
+churn    16096 non-null int64
+dtypes: int64(1), object(1)
+memory usage: 188.7+ KB
+df_test_1 = pd.read_csv('ml_case_test_data.csv')
+df_test_1.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 4024 entries, 0 to 4023
+Data columns (total 32 columns):
+id                          4024 non-null object
+activity_new                1670 non-null object
+campaign_disc_ele           0 non-null float64
+channel_sales               2968 non-null object
+cons_12m                    4024 non-null int64
+cons_gas_12m                4024 non-null int64
+cons_last_month             4024 non-null int64
+date_activ                  4024 non-null object
+date_end                    4024 non-null object
+date_first_activ            877 non-null object
+date_modif_prod             3979 non-null object
+date_renewal                4020 non-null object
+forecast_base_bill_ele      877 non-null float64
+forecast_base_bill_year     877 non-null float64
+forecast_bill_12m           877 non-null float64
+forecast_cons               877 non-null float64
+forecast_cons_12m           4024 non-null float64
+forecast_cons_year          4024 non-null int64
+forecast_discount_energy    4000 non-null float64
+forecast_meter_rent_12m     4024 non-null float64
+forecast_price_energy_p1    4000 non-null float64
+forecast_price_energy_p2    4000 non-null float64
+forecast_price_pow_p1       4000 non-null float64
+has_gas                     4024 non-null object
+imp_cons                    4024 non-null float64
+margin_gross_pow_ele        4022 non-null float64
+margin_net_pow_ele          4022 non-null float64
+nb_prod_act                 4024 non-null int64
+net_margin                  4021 non-null float64
+num_years_antig             4024 non-null int64
+origin_up                   3997 non-null object
+pow_max                     4023 non-null float64
+dtypes: float64(16), int64(6), object(10)
+memory usage: 848.9+ KB
+df_test_2 = pd.read_csv('ml_case_test_hist_data.csv')
+df_test_2.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 48236 entries, 0 to 48235
+Data columns (total 8 columns):
+id              48236 non-null object
+price_date      48236 non-null object
+price_p1_var    47934 non-null float64
+price_p2_var    47934 non-null float64
+price_p3_var    47934 non-null float64
+price_p1_fix    47934 non-null float64
+price_p2_fix    47934 non-null float64
+price_p3_fix    47934 non-null float64
+dtypes: float64(6), object(2)
+memory usage: 2.6+ MB
+df_test_3 = pd.read_csv('ml_case_test_output_template.csv')
+df_test_3.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 4024 entries, 0 to 4023
+Data columns (total 4 columns):
+Unnamed: 0           4024 non-null int64
+id                   4024 non-null object
+Churn_prediction     0 non-null float64
+Churn_probability    0 non-null float64
+dtypes: float64(2), int64(1), object(1)
+memory usage: 110.1+ KB
+df1.head()
+id	activity_new	campaign_disc_ele	channel_sales	cons_12m	cons_gas_12m	cons_last_month	date_activ	date_end	date_first_activ	...	forecast_price_pow_p1	has_gas	imp_cons	margin_gross_pow_ele	margin_net_pow_ele	nb_prod_act	net_margin	num_years_antig	origin_up	pow_max
+0	48ada52261e7cf58715202705a0451c9	esoiiifxdlbkcsluxmfuacbdckommixw	NaN	lmkebamcaaclubfxadlmueccxoimlema	309275	0	10025	2012-11-07	2016-11-06	NaN	...	58.995952	f	831.8	-41.76	-41.76	1	1732.36	3	ldkssxwpmemidmecebumciepifcamkci	180.000
+1	24011ae4ebbe3035111d65fa7c15bc57	NaN	NaN	foosdfpfkusacimwkcsosbicdxkicaua	0	54946	0	2013-06-15	2016-06-15	NaN	...	40.606701	t	0.0	25.44	25.44	2	678.99	3	lxidpiddsbxsbosboudacockeimpuepw	43.648
+2	d29c2c54acc38ff3c0614d0a653813dd	NaN	NaN	NaN	4660	0	0	2009-08-21	2016-08-30	NaN	...	44.311378	f	0.0	16.38	16.38	1	18.89	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.800
+3	764c75f661154dac3a6c254cd082ea7d	NaN	NaN	foosdfpfkusacimwkcsosbicdxkicaua	544	0	0	2010-04-16	2016-04-16	NaN	...	44.311378	f	0.0	28.60	28.60	1	6.60	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.856
+4	bba03439a292a1e166f80264c16191cb	NaN	NaN	lmkebamcaaclubfxadlmueccxoimlema	1584	0	0	2010-03-30	2016-03-30	NaN	...	44.311378	f	0.0	30.22	30.22	1	25.46	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.200
+5 rows × 32 columns
+
+df2.head()
+id	price_date	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix
+0	038af19179925da21a25619c5a24b745	2015-01-01	0.151367	0.0	0.0	44.266931	0.0	0.0
+1	038af19179925da21a25619c5a24b745	2015-02-01	0.151367	0.0	0.0	44.266931	0.0	0.0
+2	038af19179925da21a25619c5a24b745	2015-03-01	0.151367	0.0	0.0	44.266931	0.0	0.0
+3	038af19179925da21a25619c5a24b745	2015-04-01	0.149626	0.0	0.0	44.266931	0.0	0.0
+4	038af19179925da21a25619c5a24b745	2015-05-01	0.149626	0.0	0.0	44.266931	0.0	0.0
+df3.head()
+id	churn
+0	48ada52261e7cf58715202705a0451c9	0
+1	24011ae4ebbe3035111d65fa7c15bc57	1
+2	d29c2c54acc38ff3c0614d0a653813dd	0
+3	764c75f661154dac3a6c254cd082ea7d	0
+4	bba03439a292a1e166f80264c16191cb	0
+df4 = pd.merge(df1, df3, how='inner')
+df4.head()
+id	activity_new	campaign_disc_ele	channel_sales	cons_12m	cons_gas_12m	cons_last_month	date_activ	date_end	date_first_activ	...	has_gas	imp_cons	margin_gross_pow_ele	margin_net_pow_ele	nb_prod_act	net_margin	num_years_antig	origin_up	pow_max	churn
+0	48ada52261e7cf58715202705a0451c9	esoiiifxdlbkcsluxmfuacbdckommixw	NaN	lmkebamcaaclubfxadlmueccxoimlema	309275	0	10025	2012-11-07	2016-11-06	NaN	...	f	831.8	-41.76	-41.76	1	1732.36	3	ldkssxwpmemidmecebumciepifcamkci	180.000	0
+1	24011ae4ebbe3035111d65fa7c15bc57	NaN	NaN	foosdfpfkusacimwkcsosbicdxkicaua	0	54946	0	2013-06-15	2016-06-15	NaN	...	t	0.0	25.44	25.44	2	678.99	3	lxidpiddsbxsbosboudacockeimpuepw	43.648	1
+2	d29c2c54acc38ff3c0614d0a653813dd	NaN	NaN	NaN	4660	0	0	2009-08-21	2016-08-30	NaN	...	f	0.0	16.38	16.38	1	18.89	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.800	0
+3	764c75f661154dac3a6c254cd082ea7d	NaN	NaN	foosdfpfkusacimwkcsosbicdxkicaua	544	0	0	2010-04-16	2016-04-16	NaN	...	f	0.0	28.60	28.60	1	6.60	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.856	0
+4	bba03439a292a1e166f80264c16191cb	NaN	NaN	lmkebamcaaclubfxadlmueccxoimlema	1584	0	0	2010-03-30	2016-03-30	NaN	...	f	0.0	30.22	30.22	1	25.46	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.200	0
+5 rows × 33 columns
+
+df5 = df4.sort_values(by=['id'])
+df5.head()
+id	activity_new	campaign_disc_ele	channel_sales	cons_12m	cons_gas_12m	cons_last_month	date_activ	date_end	date_first_activ	...	has_gas	imp_cons	margin_gross_pow_ele	margin_net_pow_ele	nb_prod_act	net_margin	num_years_antig	origin_up	pow_max	churn
+8609	0002203ffbb812588b632b9e628cc38d	NaN	NaN	foosdfpfkusacimwkcsosbicdxkicaua	22034	0	3084	2010-01-19	2016-02-21	NaN	...	f	40.78	43.08	43.08	1	81.42	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	17.250	0
+3799	0004351ebdd665e6ee664792efc4fd13	NaN	NaN	NaN	4060	0	0	2009-08-06	2016-06-21	NaN	...	f	0.00	24.42	24.42	1	61.58	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.200	0
+442	0010bcc39e42b3c2131ed2ce55246e3c	fskfsbkdioupwobbsaoospkxaafmwobl	NaN	usilxuppasemubllopkaafesmlibmsdf	7440	0	1062	2013-02-25	2016-05-05	NaN	...	f	213.76	38.58	38.58	2	81.61	3	lxidpiddsbxsbosboudacockeimpuepw	13.856	0
+13062	0010ee3855fdea87602a5b7aba8e42de	apdekpcbwosbxepsfxclislboipuxpop	NaN	lmkebamcaaclubfxadlmueccxoimlema	4199490	728810	456462	2010-06-01	2016-06-01	NaN	...	t	1533.07	-2.80	-2.80	2	897.08	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	33.000	0
+6403	00114d74e963e47177db89bc70108537	sumdxiaiudmaioicexmiwuudlblkissm	NaN	ewpakwlliwisiwduibdlfmalxowmwpci	11272	0	0	2010-03-02	2016-03-02	NaN	...	f	0.00	29.76	29.76	1	157.99	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.200	0
+5 rows × 33 columns
+
+df2_aggregated = df2.groupby(df2['id'], as_index=False).mean()
+df2_aggregated.head()
+id	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix
+0	0002203ffbb812588b632b9e628cc38d	0.124338	0.103794	0.073160	40.701732	24.421038	16.280694
+1	0004351ebdd665e6ee664792efc4fd13	0.146426	0.000000	0.000000	44.385450	0.000000	0.000000
+2	0010bcc39e42b3c2131ed2ce55246e3c	0.181558	0.000000	0.000000	45.319710	0.000000	0.000000
+3	0010ee3855fdea87602a5b7aba8e42de	0.118757	0.098292	0.069032	40.647427	24.388455	16.258971
+4	00114d74e963e47177db89bc70108537	0.147926	0.000000	0.000000	44.266930	0.000000	0.000000
+# count percent of non-zeros in each column
+df2_aggregated.astype(bool).sum(axis=0)/16096
+id              1.000000
+price_p1_var    0.998633
+price_p2_var    0.549578
+price_p3_var    0.421285
+price_p1_fix    0.992607
+price_p2_fix    0.420477
+price_p3_fix    0.420477
+dtype: float64
+# Visualize the distribution of price
+
+#sns.distplot(df2_aggregated['price_p1_var'])
+#sns.heatmap(df2_aggregated.corr(), annot=True,  cmap="PiYG")
+# For some columns, over 50% of the data are zeros, which does not make sense.
+# Since the price for each period is stable, so assume the zeros are missing values.
+# replace zeros with the mean
+
+for col in ['price_p1_var','price_p2_var','price_p3_var','price_p1_fix','price_p2_fix','price_p3_fix']:
+    total = df2_aggregated[col].sum(skipna=True)
+    num_nonzero = df2_aggregated[col].astype(bool).sum(axis=0)
+    mean_value = (df2_aggregated[col].sum(skipna=True))/(df2_aggregated[col].astype(bool).sum(axis=0))
+    #print(mean_value)
+    df2_aggregated[col] = df2_aggregated[col].replace(0, mean_value)
+df2_aggregated.head()
+id	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix
+0	0002203ffbb812588b632b9e628cc38d	0.124338	0.103794	0.073160	40.701732	24.421038	16.280694
+1	0004351ebdd665e6ee664792efc4fd13	0.146426	0.098935	0.072851	44.385450	25.423739	15.340735
+2	0010bcc39e42b3c2131ed2ce55246e3c	0.181558	0.098935	0.072851	45.319710	25.423739	15.340735
+3	0010ee3855fdea87602a5b7aba8e42de	0.118757	0.098292	0.069032	40.647427	24.388455	16.258971
+4	00114d74e963e47177db89bc70108537	0.147926	0.098935	0.072851	44.266930	25.423739	15.340735
+def missing_values_precentage(df): 
+        mis_val = df.isnull().sum()
+        mis_val_percent = 100 * df.isnull().sum() / len(df)
+        mis_val_table = pd.concat([mis_val, mis_val_percent], axis=1)
+        mis_val_table_ren_columns = mis_val_table.rename(
+        columns = {0 : 'Missing Values', 1 : '% of Total Values'})
+        return mis_val_table_ren_columns 
+missing_values_precentage(df2_aggregated)
+Missing Values	% of Total Values
+id	0	0.000000
+price_p1_var	2	0.012425
+price_p2_var	2	0.012425
+price_p3_var	2	0.012425
+price_p1_fix	2	0.012425
+price_p2_fix	2	0.012425
+price_p3_fix	2	0.012425
+#fill missing values with the mean
+df2_aggregated = df2_aggregated.fillna(df2_aggregated.mean())
+missing_values_precentage(df2_aggregated)
+Missing Values	% of Total Values
+id	0	0.0
+price_p1_var	0	0.0
+price_p2_var	0	0.0
+price_p3_var	0	0.0
+price_p1_fix	0	0.0
+price_p2_fix	0	0.0
+price_p3_fix	0	0.0
+df_train = pd.merge(left=df5, right=df2_aggregated, left_on ='id', right_on ='id')
+df_train.head()
+id	activity_new	campaign_disc_ele	channel_sales	cons_12m	cons_gas_12m	cons_last_month	date_activ	date_end	date_first_activ	...	num_years_antig	origin_up	pow_max	churn	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix
+0	0002203ffbb812588b632b9e628cc38d	NaN	NaN	foosdfpfkusacimwkcsosbicdxkicaua	22034	0	3084	2010-01-19	2016-02-21	NaN	...	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	17.250	0	0.124338	0.103794	0.073160	40.701732	24.421038	16.280694
+1	0004351ebdd665e6ee664792efc4fd13	NaN	NaN	NaN	4060	0	0	2009-08-06	2016-06-21	NaN	...	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.200	0	0.146426	0.098935	0.072851	44.385450	25.423739	15.340735
+2	0010bcc39e42b3c2131ed2ce55246e3c	fskfsbkdioupwobbsaoospkxaafmwobl	NaN	usilxuppasemubllopkaafesmlibmsdf	7440	0	1062	2013-02-25	2016-05-05	NaN	...	3	lxidpiddsbxsbosboudacockeimpuepw	13.856	0	0.181558	0.098935	0.072851	45.319710	25.423739	15.340735
+3	0010ee3855fdea87602a5b7aba8e42de	apdekpcbwosbxepsfxclislboipuxpop	NaN	lmkebamcaaclubfxadlmueccxoimlema	4199490	728810	456462	2010-06-01	2016-06-01	NaN	...	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	33.000	0	0.118757	0.098292	0.069032	40.647427	24.388455	16.258971
+4	00114d74e963e47177db89bc70108537	sumdxiaiudmaioicexmiwuudlblkissm	NaN	ewpakwlliwisiwduibdlfmalxowmwpci	11272	0	0	2010-03-02	2016-03-02	NaN	...	6	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.200	0	0.147926	0.098935	0.072851	44.266930	25.423739	15.340735
+5 rows × 39 columns
+
+missing_values_precentage(df_train)
+Missing Values	% of Total Values
+id	0	0.000000
+activity_new	9545	59.300447
+campaign_disc_ele	16096	100.000000
+channel_sales	4218	26.205268
+cons_12m	0	0.000000
+cons_gas_12m	0	0.000000
+cons_last_month	0	0.000000
+date_activ	0	0.000000
+date_end	2	0.012425
+date_first_activ	12588	78.205765
+date_modif_prod	157	0.975398
+date_renewal	40	0.248509
+forecast_base_bill_ele	12588	78.205765
+forecast_base_bill_year	12588	78.205765
+forecast_bill_12m	12588	78.205765
+forecast_cons	12588	78.205765
+forecast_cons_12m	0	0.000000
+forecast_cons_year	0	0.000000
+forecast_discount_energy	126	0.782803
+forecast_meter_rent_12m	0	0.000000
+forecast_price_energy_p1	126	0.782803
+forecast_price_energy_p2	126	0.782803
+forecast_price_pow_p1	126	0.782803
+has_gas	0	0.000000
+imp_cons	0	0.000000
+margin_gross_pow_ele	13	0.080765
+margin_net_pow_ele	13	0.080765
+nb_prod_act	0	0.000000
+net_margin	15	0.093191
+num_years_antig	0	0.000000
+origin_up	87	0.540507
+pow_max	3	0.018638
+churn	0	0.000000
+price_p1_var	0	0.000000
+price_p2_var	0	0.000000
+price_p3_var	0	0.000000
+price_p1_fix	0	0.000000
+price_p2_fix	0	0.000000
+price_p3_fix	0	0.000000
+# Since column 'campaign_disc_ele' has 100% missing values, so it is reasonable to drop it.
+df_train = df_train.drop('campaign_disc_ele', axis=1)
+df_train.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 16096 entries, 0 to 16095
+Data columns (total 38 columns):
+id                          16096 non-null object
+activity_new                6551 non-null object
+channel_sales               11878 non-null object
+cons_12m                    16096 non-null int64
+cons_gas_12m                16096 non-null int64
+cons_last_month             16096 non-null int64
+date_activ                  16096 non-null object
+date_end                    16094 non-null object
+date_first_activ            3508 non-null object
+date_modif_prod             15939 non-null object
+date_renewal                16056 non-null object
+forecast_base_bill_ele      3508 non-null float64
+forecast_base_bill_year     3508 non-null float64
+forecast_bill_12m           3508 non-null float64
+forecast_cons               3508 non-null float64
+forecast_cons_12m           16096 non-null float64
+forecast_cons_year          16096 non-null int64
+forecast_discount_energy    15970 non-null float64
+forecast_meter_rent_12m     16096 non-null float64
+forecast_price_energy_p1    15970 non-null float64
+forecast_price_energy_p2    15970 non-null float64
+forecast_price_pow_p1       15970 non-null float64
+has_gas                     16096 non-null object
+imp_cons                    16096 non-null float64
+margin_gross_pow_ele        16083 non-null float64
+margin_net_pow_ele          16083 non-null float64
+nb_prod_act                 16096 non-null int64
+net_margin                  16081 non-null float64
+num_years_antig             16096 non-null int64
+origin_up                   16009 non-null object
+pow_max                     16093 non-null float64
+churn                       16096 non-null int64
+price_p1_var                16096 non-null float64
+price_p2_var                16096 non-null float64
+price_p3_var                16096 non-null float64
+price_p1_fix                16096 non-null float64
+price_p2_fix                16096 non-null float64
+price_p3_fix                16096 non-null float64
+dtypes: float64(21), int64(7), object(10)
+memory usage: 4.2+ MB
+#sns.distplot(df_train['forecast_base_bill_ele'])
+#sns.distplot(df_train['forecast_bill_12m'])
+#fill numerical missing value with their mean
+df_train = df_train.fillna(df_train.mean())
+missing_values_precentage(df_train)
+Missing Values	% of Total Values
+id	0	0.000000
+activity_new	9545	59.300447
+channel_sales	4218	26.205268
+cons_12m	0	0.000000
+cons_gas_12m	0	0.000000
+cons_last_month	0	0.000000
+date_activ	0	0.000000
+date_end	2	0.012425
+date_first_activ	12588	78.205765
+date_modif_prod	157	0.975398
+date_renewal	40	0.248509
+forecast_base_bill_ele	0	0.000000
+forecast_base_bill_year	0	0.000000
+forecast_bill_12m	0	0.000000
+forecast_cons	0	0.000000
+forecast_cons_12m	0	0.000000
+forecast_cons_year	0	0.000000
+forecast_discount_energy	0	0.000000
+forecast_meter_rent_12m	0	0.000000
+forecast_price_energy_p1	0	0.000000
+forecast_price_energy_p2	0	0.000000
+forecast_price_pow_p1	0	0.000000
+has_gas	0	0.000000
+imp_cons	0	0.000000
+margin_gross_pow_ele	0	0.000000
+margin_net_pow_ele	0	0.000000
+nb_prod_act	0	0.000000
+net_margin	0	0.000000
+num_years_antig	0	0.000000
+origin_up	87	0.540507
+pow_max	0	0.000000
+churn	0	0.000000
+price_p1_var	0	0.000000
+price_p2_var	0	0.000000
+price_p3_var	0	0.000000
+price_p1_fix	0	0.000000
+price_p2_fix	0	0.000000
+price_p3_fix	0	0.000000
+df_train.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 16096 entries, 0 to 16095
+Data columns (total 38 columns):
+id                          16096 non-null object
+activity_new                6551 non-null object
+channel_sales               11878 non-null object
+cons_12m                    16096 non-null int64
+cons_gas_12m                16096 non-null int64
+cons_last_month             16096 non-null int64
+date_activ                  16096 non-null object
+date_end                    16094 non-null object
+date_first_activ            3508 non-null object
+date_modif_prod             15939 non-null object
+date_renewal                16056 non-null object
+forecast_base_bill_ele      16096 non-null float64
+forecast_base_bill_year     16096 non-null float64
+forecast_bill_12m           16096 non-null float64
+forecast_cons               16096 non-null float64
+forecast_cons_12m           16096 non-null float64
+forecast_cons_year          16096 non-null int64
+forecast_discount_energy    16096 non-null float64
+forecast_meter_rent_12m     16096 non-null float64
+forecast_price_energy_p1    16096 non-null float64
+forecast_price_energy_p2    16096 non-null float64
+forecast_price_pow_p1       16096 non-null float64
+has_gas                     16096 non-null object
+imp_cons                    16096 non-null float64
+margin_gross_pow_ele        16096 non-null float64
+margin_net_pow_ele          16096 non-null float64
+nb_prod_act                 16096 non-null int64
+net_margin                  16096 non-null float64
+num_years_antig             16096 non-null int64
+origin_up                   16009 non-null object
+pow_max                     16096 non-null float64
+churn                       16096 non-null int64
+price_p1_var                16096 non-null float64
+price_p2_var                16096 non-null float64
+price_p3_var                16096 non-null float64
+price_p1_fix                16096 non-null float64
+price_p2_fix                16096 non-null float64
+price_p3_fix                16096 non-null float64
+dtypes: float64(21), int64(7), object(10)
+memory usage: 4.2+ MB
+#fill missing categorical variables with mode
+df_train['channel_sales'].value_counts()
+foosdfpfkusacimwkcsosbicdxkicaua    7377
+lmkebamcaaclubfxadlmueccxoimlema    2073
+usilxuppasemubllopkaafesmlibmsdf    1444
+ewpakwlliwisiwduibdlfmalxowmwpci     966
+sddiedcslfslkckwlfkdpoeeailfpeds      12
+epumfxlbckeskwekxbiuasklxalciiuu       4
+fixdbufsefwooaasfcxdxadsiekoceaa       2
+Name: channel_sales, dtype: int64
+df_train['channel_sales'].fillna('foosdfpfkusacimwkcsosbicdxkicaua', inplace=True)
+#missing_values_precentage(df_train)
+#remove values of 'channel_sales' that rarely occured
+
+df_train = df_train[~df_train['channel_sales'].isin(['sddiedcslfslkckwlfkdpoeeailfpeds', 
+                                                     'epumfxlbckeskwekxbiuasklxalciiuu', 'fixdbufsefwooaasfcxdxadsiekoceaa'])]
+df_train['channel_sales'].value_counts()
+foosdfpfkusacimwkcsosbicdxkicaua    11595
+lmkebamcaaclubfxadlmueccxoimlema     2073
+usilxuppasemubllopkaafesmlibmsdf     1444
+ewpakwlliwisiwduibdlfmalxowmwpci      966
+Name: channel_sales, dtype: int64
+df_train['origin_up'].value_counts()
+lxidpiddsbxsbosboudacockeimpuepw    7821
+kamkkxfxxuwbdslkwifmmcsiusiuosws    4515
+ldkssxwpmemidmecebumciepifcamkci    3652
+usapbepcfoloekilkwsdiboslwaxobdp       2
+ewxeelcelemmiwuafmddpobolfuxioce       1
+Name: origin_up, dtype: int64
+df_train['origin_up'].fillna('lxidpiddsbxsbosboudacockeimpuepw', inplace=True)
+#remove values of 'origin_up' that rarely occured
+
+df_train = df_train[~df_train['origin_up'].isin(['usapbepcfoloekilkwsdiboslwaxobdp', 
+                                                     'ewxeelcelemmiwuafmddpobolfuxioce'])]
+#missing_values_precentage(df_train)
+df_train['activity_new'].value_counts().head()
+apdekpcbwosbxepsfxclislboipuxpop    1575
+kkklcdamwfafdcfwofuscwfwadblfmce     422
+kwuslieomapmswolewpobpplkaooaaew     230
+fmwdwsxillemwbbwelxsampiuwwpcdcb     218
+ckfxocssowaeipxueikxcmaxdmcduxsa     189
+Name: activity_new, dtype: int64
+df_train.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 16075 entries, 0 to 16095
+Data columns (total 38 columns):
+id                          16075 non-null object
+activity_new                6544 non-null object
+channel_sales               16075 non-null object
+cons_12m                    16075 non-null int64
+cons_gas_12m                16075 non-null int64
+cons_last_month             16075 non-null int64
+date_activ                  16075 non-null object
+date_end                    16073 non-null object
+date_first_activ            3505 non-null object
+date_modif_prod             15922 non-null object
+date_renewal                16035 non-null object
+forecast_base_bill_ele      16075 non-null float64
+forecast_base_bill_year     16075 non-null float64
+forecast_bill_12m           16075 non-null float64
+forecast_cons               16075 non-null float64
+forecast_cons_12m           16075 non-null float64
+forecast_cons_year          16075 non-null int64
+forecast_discount_energy    16075 non-null float64
+forecast_meter_rent_12m     16075 non-null float64
+forecast_price_energy_p1    16075 non-null float64
+forecast_price_energy_p2    16075 non-null float64
+forecast_price_pow_p1       16075 non-null float64
+has_gas                     16075 non-null object
+imp_cons                    16075 non-null float64
+margin_gross_pow_ele        16075 non-null float64
+margin_net_pow_ele          16075 non-null float64
+nb_prod_act                 16075 non-null int64
+net_margin                  16075 non-null float64
+num_years_antig             16075 non-null int64
+origin_up                   16075 non-null object
+pow_max                     16075 non-null float64
+churn                       16075 non-null int64
+price_p1_var                16075 non-null float64
+price_p2_var                16075 non-null float64
+price_p3_var                16075 non-null float64
+price_p1_fix                16075 non-null float64
+price_p2_fix                16075 non-null float64
+price_p3_fix                16075 non-null float64
+dtypes: float64(21), int64(7), object(10)
+memory usage: 4.2+ MB
+df_activity = df_train[(df_train.activity_new == 'apdekpcbwosbxepsfxclislboipuxpop') | 
+                       (df_train.activity_new == 'kkklcdamwfafdcfwofuscwfwadblfmce') |
+                       (df_train.activity_new == 'kwuslieomapmswolewpobpplkaooaaew') |
+                       (df_train.activity_new == 'fmwdwsxillemwbbwelxsampiuwwpcdcb') |
+                       (df_train.activity_new == 'ckfxocssowaeipxueikxcmaxdmcduxsa') |
+                       (df_train.activity_new == 'cwofmuicebbcmiaaxufmfimpowpacobu') |
+                       (df_train.activity_new == 'cluecxlameloamldmasudocsbmaoamdw') |
+                       (df_train.activity_new == 'wxemiwkumpibllwklfbcooafckufkdlm') ]
+#g = sns.factorplot(x='activity_new',y='churn',data=df_activity,kind='bar', size = 6, palette = "GnBu_d")
+
+#palette = 'colorblind')
+
+
+#g.despine(left=True)
+#g = g.set_ylabels('churn')
+#g.set_xticklabels(rotation=30)
+#optimize data visualization
+#ax = sns.barplot(x='activity_new',y='churn', data=df_activity)
+#ax.legend(loc='upper right', bbox_to_anchor=(1.1, 1.1))
+#ax.set_xticklabels(rotation=30)
+
+#g = sns.barplot(x='activity_new',y='churn', hue = "churn", data=df_activity,kind='bar', size = 6, 
+#palette = 'colorblind')
+#g.despine(left=True)
+#g = g.set_ylabels('churn')
+#g.set_xticklabels(rotation=30)
+sns.set_context("paper", font_scale=1.8) 
+bx = sns.barplot(x = "activity_new", y="churn", data=df_activity, palette="GnBu_d")
+#bx.set_title('Category of Company\'s Activity VS. Churn')
+bx.set(xlabel='Category of Company\'s Activity', ylabel='Average Churn Rate')
+bx.set(xticklabels=[])
+#bx.legend(loc='upper right', bbox_to_anchor=(1.1, 1.1))
+[[]]
+
+plt.figure(figsize=(6,2))
+cx = sns.barplot(y = "activity_new", x="churn", data=df_activity, palette="GnBu_d")
+
+df_train.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 16075 entries, 0 to 16095
+Data columns (total 38 columns):
+id                          16075 non-null object
+activity_new                6544 non-null object
+channel_sales               16075 non-null object
+cons_12m                    16075 non-null int64
+cons_gas_12m                16075 non-null int64
+cons_last_month             16075 non-null int64
+date_activ                  16075 non-null object
+date_end                    16073 non-null object
+date_first_activ            3505 non-null object
+date_modif_prod             15922 non-null object
+date_renewal                16035 non-null object
+forecast_base_bill_ele      16075 non-null float64
+forecast_base_bill_year     16075 non-null float64
+forecast_bill_12m           16075 non-null float64
+forecast_cons               16075 non-null float64
+forecast_cons_12m           16075 non-null float64
+forecast_cons_year          16075 non-null int64
+forecast_discount_energy    16075 non-null float64
+forecast_meter_rent_12m     16075 non-null float64
+forecast_price_energy_p1    16075 non-null float64
+forecast_price_energy_p2    16075 non-null float64
+forecast_price_pow_p1       16075 non-null float64
+has_gas                     16075 non-null object
+imp_cons                    16075 non-null float64
+margin_gross_pow_ele        16075 non-null float64
+margin_net_pow_ele          16075 non-null float64
+nb_prod_act                 16075 non-null int64
+net_margin                  16075 non-null float64
+num_years_antig             16075 non-null int64
+origin_up                   16075 non-null object
+pow_max                     16075 non-null float64
+churn                       16075 non-null int64
+price_p1_var                16075 non-null float64
+price_p2_var                16075 non-null float64
+price_p3_var                16075 non-null float64
+price_p1_fix                16075 non-null float64
+price_p2_fix                16075 non-null float64
+price_p3_fix                16075 non-null float64
+dtypes: float64(21), int64(7), object(10)
+memory usage: 4.2+ MB
+# The graph above shows 'activity_new' might be very useful to predict churn.
+# Since ~60% of the data is missing, and many existing data belongs to low probability event (<5% of all obeservations),
+# Fill missing data and low probability events with a new level 'unknown'
+df_train['activity_new'].fillna('unknown', inplace=True)
+df_train.dtypes
+id                           object
+activity_new                 object
+channel_sales                object
+cons_12m                      int64
+cons_gas_12m                  int64
+cons_last_month               int64
+date_activ                   object
+date_end                     object
+date_first_activ             object
+date_modif_prod              object
+date_renewal                 object
+forecast_base_bill_ele      float64
+forecast_base_bill_year     float64
+forecast_bill_12m           float64
+forecast_cons               float64
+forecast_cons_12m           float64
+forecast_cons_year            int64
+forecast_discount_energy    float64
+forecast_meter_rent_12m     float64
+forecast_price_energy_p1    float64
+forecast_price_energy_p2    float64
+forecast_price_pow_p1       float64
+has_gas                      object
+imp_cons                    float64
+margin_gross_pow_ele        float64
+margin_net_pow_ele          float64
+nb_prod_act                   int64
+net_margin                  float64
+num_years_antig               int64
+origin_up                    object
+pow_max                     float64
+churn                         int64
+price_p1_var                float64
+price_p2_var                float64
+price_p3_var                float64
+price_p1_fix                float64
+price_p2_fix                float64
+price_p3_fix                float64
+dtype: object
+df_train['activity_new'].value_counts()
+unknown                             9531
+apdekpcbwosbxepsfxclislboipuxpop    1575
+kkklcdamwfafdcfwofuscwfwadblfmce     422
+kwuslieomapmswolewpobpplkaooaaew     230
+fmwdwsxillemwbbwelxsampiuwwpcdcb     218
+ckfxocssowaeipxueikxcmaxdmcduxsa     189
+cwofmuicebbcmiaaxufmfimpowpacobu     122
+wxemiwkumpibllwklfbcooafckufkdlm     119
+cluecxlameloamldmasudocsbmaoamdw     119
+sfisfxfcocfpcmckuekokxuseixdaoeu      82
+sffadmsbuamddwapeumdfibkmpkdicmc      75
+sxublbwoeuckkocekklxkllcdxxaisop      72
+ipdldckuswupeifllfbwccfpeafludfi      64
+saxlifeumaobawxpemwuopbwwldlucff      62
+dupxuibdflmskeieweeofcaluuuiioix      61
+daobdssbkieoukwxbopxiiospudkopwl      58
+ibkiiwcxiccxpoedpweiuxwbxbuewbxm      57
+cfdsselwimsklimddecfifseabdkxfcs      51
+ilkfsaapsxpkcpswbllddfmpamwelpxi      50
+bwpaswkpcilmlklklcapcwwumwaodaoo      48
+bxopwkbwdewxssbmkwcummkaakbwafxf      48
+mpicaaibskkfmxoblmwwwuuwpkecacil      44
+balskueexlmuccwdffilikwxasupasxf      43
+sumdxiaiudmaioicexmiwuudlblkissm      43
+lkeudbeowbapkpfodoxacpwdpaeuwxcx      41
+ppcxfxbffsxaakxamcdpexdoxulfwwae      41
+ddkpdekmbfdffwdmabkiiilolsxswccl      41
+kmxccaddbdpaaolkbidlobeefsbbcxca      36
+axsupumdipebmlbiwolspmkdouoiddbc      34
+fkmblacmaapkaoauabpwpuweokkeiali      33
+                                    ... 
+kkkmlicifclosfkbxodcmsaweebkolde       1
+updsxswiffpfixmssiwcfociadowkbsc       1
+beplffiwdfsmiuodulsfscelscscbdix       1
+dbxlsaldowxpxlxfoueabwbaclmlbuiu       1
+dxmfpsflslufmxlmwdmbkikffowmfmum       1
+iuicsodpwomiidiakdpdkxomecpxcdod       1
+kmlwkmxoocpieebifumobckeafmidpxf       1
+axicmuscucbmiecbxaiuudxiacufcpcx       1
+oeacexidmflusdkwuuicmpiaklkxulxm       1
+oclxmuppafkockbpkiuksfomiuaeiosm       1
+oledkfbuxkbmxsbkseiolpumuwooeldp       1
+wcweaxoxmefpfbpfbifcwmfeeubwwkmc       1
+wceaopxmdpccxfmcdpopulcaubcxibuw       1
+oolfsafdpblfmubuscwbbuifuxdxkfsd       1
+kimmoxipdxfalcpoueuwkddauubioiwl       1
+iwmoskaicewfewukldfwcdwlxcwwoeom       1
+fuffsxwkckuoabdsallukmckpwlikakw       1
+klsmomiakxdaufoldfilmbxcpuaxiosp       1
+xwkaesbkfsacseixxksofpddwfkbobki       1
+exmccxcauwolkacaceedipbcmodfedfl       1
+bcsfemospxbiwoudpemmseeckfcpwfwu       1
+klaclcdipfdkebisxwccdbdooobmiwpl       1
+wwcdlamflfufmxioubuuxpuxkssxkswd       1
+aumipeuxxkfeepiikplpcoifakioeeel       1
+aacewucldmklslcffeckexipaemmsdfk       1
+eddebmodfooxxwfaslcswiepfmaoxxss       1
+kpkesxdaobicuwwkukxwmdpsbowwbomd       1
+fwddlsxciofoefslfumfpxxmcomoaucd       1
+udmdflpapcfbfpcxbwlbcubxkfoiwaff       1
+disxkufseacaikoobdmfomdsbcxmocae       1
+Name: activity_new, Length: 420, dtype: int64
+# create a function to resign category levels
+def category_resign(df):
+    if df['activity_new'] == 'apdekpcbwosbxepsfxclislboipuxpop':
+        return 'apdekpcbwosbxepsfxclislboipuxpop'
+    elif df['activity_new'] == 'kkklcdamwfafdcfwofuscwfwadblfmce':
+        return 'kkklcdamwfafdcfwofuscwfwadblfmce'
+    else:
+        return 'unknown'
+# create new column 'activity 
+df_train['activity']=df_train.apply(category_resign, axis=1)
+df_train['activity'].value_counts()
+unknown                             14078
+apdekpcbwosbxepsfxclislboipuxpop     1575
+kkklcdamwfafdcfwofuscwfwadblfmce      422
+Name: activity, dtype: int64
+g = sns.factorplot(x='activity',y='churn',data=df_train,kind='bar', size = 6, 
+palette = 'colorblind')
+g.despine(left=True)
+g = g.set_ylabels('churn')
+g.set_xticklabels(rotation=30)
+<seaborn.axisgrid.FacetGrid at 0xe648150>
+
+sns.set_context("paper", font_scale=1.8) 
+bx = sns.barplot(x = "activity", y="churn", data=df_train, palette="GnBu_d")
+#bx.set_title('Category of Company\'s Activity VS. Churn')
+bx.set(xlabel='Category of Company\'s Activity', ylabel='Average Churn Rate')
+bx.set(xticklabels=[])
+#bx.legend(loc='upper right', bbox_to_anchor=(1.1, 1.1))
+[[]]
+
+plt.figure(figsize=(2,0.8))
+cx = sns.barplot(y = "activity", x="churn", data=df_train, palette="GnBu_d")
+
+missing_values_precentage(df_train)
+Missing Values	% of Total Values
+id	0	0.000000
+activity_new	0	0.000000
+channel_sales	0	0.000000
+cons_12m	0	0.000000
+cons_gas_12m	0	0.000000
+cons_last_month	0	0.000000
+date_activ	0	0.000000
+date_end	2	0.012442
+date_first_activ	12570	78.195956
+date_modif_prod	153	0.951788
+date_renewal	40	0.248834
+forecast_base_bill_ele	0	0.000000
+forecast_base_bill_year	0	0.000000
+forecast_bill_12m	0	0.000000
+forecast_cons	0	0.000000
+forecast_cons_12m	0	0.000000
+forecast_cons_year	0	0.000000
+forecast_discount_energy	0	0.000000
+forecast_meter_rent_12m	0	0.000000
+forecast_price_energy_p1	0	0.000000
+forecast_price_energy_p2	0	0.000000
+forecast_price_pow_p1	0	0.000000
+has_gas	0	0.000000
+imp_cons	0	0.000000
+margin_gross_pow_ele	0	0.000000
+margin_net_pow_ele	0	0.000000
+nb_prod_act	0	0.000000
+net_margin	0	0.000000
+num_years_antig	0	0.000000
+origin_up	0	0.000000
+pow_max	0	0.000000
+churn	0	0.000000
+price_p1_var	0	0.000000
+price_p2_var	0	0.000000
+price_p3_var	0	0.000000
+price_p1_fix	0	0.000000
+price_p2_fix	0	0.000000
+price_p3_fix	0	0.000000
+activity	0	0.000000
+Date data analysis
+# convert date data type
+
+for col in ['date_activ', 'date_end', 'date_first_activ', 'date_modif_prod', 'date_renewal']:
+    df_train[col] = pd.to_datetime(df_train[col])
+#df_train.dtypes
+df_train['date_now'] = pd.to_datetime('2016-01-01')
+#df_train.dtypes
+ df_train['activ_period'] = df_train['date_end'] - df_train['date_activ']
+df_train.head()
+id	activity_new	channel_sales	cons_12m	cons_gas_12m	cons_last_month	date_activ	date_end	date_first_activ	date_modif_prod	...	churn	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix	activity	date_now	activ_period
+0	0002203ffbb812588b632b9e628cc38d	unknown	foosdfpfkusacimwkcsosbicdxkicaua	22034	0	3084	2010-01-19	2016-02-21	NaT	2010-01-19	...	0	0.124338	0.103794	0.073160	40.701732	24.421038	16.280694	unknown	2016-01-01	2224 days
+1	0004351ebdd665e6ee664792efc4fd13	unknown	foosdfpfkusacimwkcsosbicdxkicaua	4060	0	0	2009-08-06	2016-06-21	NaT	2013-06-21	...	0	0.146426	0.098935	0.072851	44.385450	25.423739	15.340735	unknown	2016-01-01	2511 days
+2	0010bcc39e42b3c2131ed2ce55246e3c	fskfsbkdioupwobbsaoospkxaafmwobl	usilxuppasemubllopkaafesmlibmsdf	7440	0	1062	2013-02-25	2016-05-05	NaT	2015-05-05	...	0	0.181558	0.098935	0.072851	45.319710	25.423739	15.340735	unknown	2016-01-01	1165 days
+3	0010ee3855fdea87602a5b7aba8e42de	apdekpcbwosbxepsfxclislboipuxpop	lmkebamcaaclubfxadlmueccxoimlema	4199490	728810	456462	2010-06-01	2016-06-01	NaT	2010-06-01	...	0	0.118757	0.098292	0.069032	40.647427	24.388455	16.258971	apdekpcbwosbxepsfxclislboipuxpop	2016-01-01	2192 days
+4	00114d74e963e47177db89bc70108537	sumdxiaiudmaioicexmiwuudlblkissm	ewpakwlliwisiwduibdlfmalxowmwpci	11272	0	0	2010-03-02	2016-03-02	NaT	2010-03-02	...	0	0.147926	0.098935	0.072851	44.266930	25.423739	15.340735	unknown	2016-01-01	2192 days
+5 rows × 41 columns
+
+# df_train['first_activ_to_now'] = df_train['date_now'] - df_train['date_first_activ']
+ df_train['modif_to_now'] = df_train['date_now'] - df_train['date_modif_prod']
+ df_train['renew_to_now'] = df_train['date_now'] - df_train['date_renewal']
+df_train.columns
+Index(['id', 'activity_new', 'channel_sales', 'cons_12m', 'cons_gas_12m',
+       'cons_last_month', 'date_activ', 'date_end', 'date_first_activ',
+       'date_modif_prod', 'date_renewal', 'forecast_base_bill_ele',
+       'forecast_base_bill_year', 'forecast_bill_12m', 'forecast_cons',
+       'forecast_cons_12m', 'forecast_cons_year', 'forecast_discount_energy',
+       'forecast_meter_rent_12m', 'forecast_price_energy_p1',
+       'forecast_price_energy_p2', 'forecast_price_pow_p1', 'has_gas',
+       'imp_cons', 'margin_gross_pow_ele', 'margin_net_pow_ele', 'nb_prod_act',
+       'net_margin', 'num_years_antig', 'origin_up', 'pow_max', 'churn',
+       'price_p1_var', 'price_p2_var', 'price_p3_var', 'price_p1_fix',
+       'price_p2_fix', 'price_p3_fix', 'activity', 'date_now', 'activ_period',
+       'modif_to_now', 'renew_to_now'],
+      dtype='object')
+df_train.head()
+id	activity_new	channel_sales	cons_12m	cons_gas_12m	cons_last_month	date_activ	date_end	date_first_activ	date_modif_prod	...	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix	activity	date_now	activ_period	modif_to_now	renew_to_now
+0	0002203ffbb812588b632b9e628cc38d	unknown	foosdfpfkusacimwkcsosbicdxkicaua	22034	0	3084	2010-01-19	2016-02-21	NaT	2010-01-19	...	0.103794	0.073160	40.701732	24.421038	16.280694	unknown	2016-01-01	2224 days	2173 days	310 days
+1	0004351ebdd665e6ee664792efc4fd13	unknown	foosdfpfkusacimwkcsosbicdxkicaua	4060	0	0	2009-08-06	2016-06-21	NaT	2013-06-21	...	0.098935	0.072851	44.385450	25.423739	15.340735	unknown	2016-01-01	2511 days	924 days	192 days
+2	0010bcc39e42b3c2131ed2ce55246e3c	fskfsbkdioupwobbsaoospkxaafmwobl	usilxuppasemubllopkaafesmlibmsdf	7440	0	1062	2013-02-25	2016-05-05	NaT	2015-05-05	...	0.098935	0.072851	45.319710	25.423739	15.340735	unknown	2016-01-01	1165 days	241 days	309 days
+3	0010ee3855fdea87602a5b7aba8e42de	apdekpcbwosbxepsfxclislboipuxpop	lmkebamcaaclubfxadlmueccxoimlema	4199490	728810	456462	2010-06-01	2016-06-01	NaT	2010-06-01	...	0.098292	0.069032	40.647427	24.388455	16.258971	apdekpcbwosbxepsfxclislboipuxpop	2016-01-01	2192 days	2040 days	207 days
+4	00114d74e963e47177db89bc70108537	sumdxiaiudmaioicexmiwuudlblkissm	ewpakwlliwisiwduibdlfmalxowmwpci	11272	0	0	2010-03-02	2016-03-02	NaT	2010-03-02	...	0.098935	0.072851	44.266930	25.423739	15.340735	unknown	2016-01-01	2192 days	2131 days	298 days
+5 rows × 43 columns
+
+# select columns of interest
+missing_values_precentage(df_train)
+Missing Values	% of Total Values
+id	0	0.000000
+activity_new	0	0.000000
+channel_sales	0	0.000000
+cons_12m	0	0.000000
+cons_gas_12m	0	0.000000
+cons_last_month	0	0.000000
+date_activ	0	0.000000
+date_end	2	0.012442
+date_first_activ	12570	78.195956
+date_modif_prod	153	0.951788
+date_renewal	40	0.248834
+forecast_base_bill_ele	0	0.000000
+forecast_base_bill_year	0	0.000000
+forecast_bill_12m	0	0.000000
+forecast_cons	0	0.000000
+forecast_cons_12m	0	0.000000
+forecast_cons_year	0	0.000000
+forecast_discount_energy	0	0.000000
+forecast_meter_rent_12m	0	0.000000
+forecast_price_energy_p1	0	0.000000
+forecast_price_energy_p2	0	0.000000
+forecast_price_pow_p1	0	0.000000
+has_gas	0	0.000000
+imp_cons	0	0.000000
+margin_gross_pow_ele	0	0.000000
+margin_net_pow_ele	0	0.000000
+nb_prod_act	0	0.000000
+net_margin	0	0.000000
+num_years_antig	0	0.000000
+origin_up	0	0.000000
+pow_max	0	0.000000
+churn	0	0.000000
+price_p1_var	0	0.000000
+price_p2_var	0	0.000000
+price_p3_var	0	0.000000
+price_p1_fix	0	0.000000
+price_p2_fix	0	0.000000
+price_p3_fix	0	0.000000
+activity	0	0.000000
+date_now	0	0.000000
+activ_period	2	0.012442
+modif_to_now	153	0.951788
+renew_to_now	40	0.248834
+df_train.drop('date_first_activ', axis=1, inplace=True)
+missing_values_precentage(df_train)
+Missing Values	% of Total Values
+id	0	0.000000
+activity_new	0	0.000000
+channel_sales	0	0.000000
+cons_12m	0	0.000000
+cons_gas_12m	0	0.000000
+cons_last_month	0	0.000000
+date_activ	0	0.000000
+date_end	2	0.012442
+date_modif_prod	153	0.951788
+date_renewal	40	0.248834
+forecast_base_bill_ele	0	0.000000
+forecast_base_bill_year	0	0.000000
+forecast_bill_12m	0	0.000000
+forecast_cons	0	0.000000
+forecast_cons_12m	0	0.000000
+forecast_cons_year	0	0.000000
+forecast_discount_energy	0	0.000000
+forecast_meter_rent_12m	0	0.000000
+forecast_price_energy_p1	0	0.000000
+forecast_price_energy_p2	0	0.000000
+forecast_price_pow_p1	0	0.000000
+has_gas	0	0.000000
+imp_cons	0	0.000000
+margin_gross_pow_ele	0	0.000000
+margin_net_pow_ele	0	0.000000
+nb_prod_act	0	0.000000
+net_margin	0	0.000000
+num_years_antig	0	0.000000
+origin_up	0	0.000000
+pow_max	0	0.000000
+churn	0	0.000000
+price_p1_var	0	0.000000
+price_p2_var	0	0.000000
+price_p3_var	0	0.000000
+price_p1_fix	0	0.000000
+price_p2_fix	0	0.000000
+price_p3_fix	0	0.000000
+activity	0	0.000000
+date_now	0	0.000000
+activ_period	2	0.012442
+modif_to_now	153	0.951788
+renew_to_now	40	0.248834
+#df_train.info()
+df_train.drop('activity_new', axis=1, inplace=True)
+for col in ['date_activ','date_end', 'date_modif_prod', 'date_renewal']:
+    df_train.drop(col, axis=1, inplace=True)
+df_train.drop('date_now', axis=1, inplace=True)
+missing_values_precentage(df_train)
+Missing Values	% of Total Values
+id	0	0.000000
+channel_sales	0	0.000000
+cons_12m	0	0.000000
+cons_gas_12m	0	0.000000
+cons_last_month	0	0.000000
+forecast_base_bill_ele	0	0.000000
+forecast_base_bill_year	0	0.000000
+forecast_bill_12m	0	0.000000
+forecast_cons	0	0.000000
+forecast_cons_12m	0	0.000000
+forecast_cons_year	0	0.000000
+forecast_discount_energy	0	0.000000
+forecast_meter_rent_12m	0	0.000000
+forecast_price_energy_p1	0	0.000000
+forecast_price_energy_p2	0	0.000000
+forecast_price_pow_p1	0	0.000000
+has_gas	0	0.000000
+imp_cons	0	0.000000
+margin_gross_pow_ele	0	0.000000
+margin_net_pow_ele	0	0.000000
+nb_prod_act	0	0.000000
+net_margin	0	0.000000
+num_years_antig	0	0.000000
+origin_up	0	0.000000
+pow_max	0	0.000000
+churn	0	0.000000
+price_p1_var	0	0.000000
+price_p2_var	0	0.000000
+price_p3_var	0	0.000000
+price_p1_fix	0	0.000000
+price_p2_fix	0	0.000000
+price_p3_fix	0	0.000000
+activity	0	0.000000
+activ_period	2	0.012442
+modif_to_now	153	0.951788
+renew_to_now	40	0.248834
+df_train.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 16075 entries, 0 to 16095
+Data columns (total 36 columns):
+id                          16075 non-null object
+channel_sales               16075 non-null object
+cons_12m                    16075 non-null int64
+cons_gas_12m                16075 non-null int64
+cons_last_month             16075 non-null int64
+forecast_base_bill_ele      16075 non-null float64
+forecast_base_bill_year     16075 non-null float64
+forecast_bill_12m           16075 non-null float64
+forecast_cons               16075 non-null float64
+forecast_cons_12m           16075 non-null float64
+forecast_cons_year          16075 non-null int64
+forecast_discount_energy    16075 non-null float64
+forecast_meter_rent_12m     16075 non-null float64
+forecast_price_energy_p1    16075 non-null float64
+forecast_price_energy_p2    16075 non-null float64
+forecast_price_pow_p1       16075 non-null float64
+has_gas                     16075 non-null object
+imp_cons                    16075 non-null float64
+margin_gross_pow_ele        16075 non-null float64
+margin_net_pow_ele          16075 non-null float64
+nb_prod_act                 16075 non-null int64
+net_margin                  16075 non-null float64
+num_years_antig             16075 non-null int64
+origin_up                   16075 non-null object
+pow_max                     16075 non-null float64
+churn                       16075 non-null int64
+price_p1_var                16075 non-null float64
+price_p2_var                16075 non-null float64
+price_p3_var                16075 non-null float64
+price_p1_fix                16075 non-null float64
+price_p2_fix                16075 non-null float64
+price_p3_fix                16075 non-null float64
+activity                    16075 non-null object
+activ_period                16073 non-null timedelta64[ns]
+modif_to_now                15922 non-null timedelta64[ns]
+renew_to_now                16035 non-null timedelta64[ns]
+dtypes: float64(21), int64(7), object(5), timedelta64[ns](3)
+memory usage: 4.7+ MB
+Convert data type (object -> category)
+for col in ['activity', 'channel_sales', 'has_gas', 'origin_up']:
+    df_train[col] = df_train[col].astype('category')
+df_train.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 16075 entries, 0 to 16095
+Data columns (total 36 columns):
+id                          16075 non-null object
+channel_sales               16075 non-null category
+cons_12m                    16075 non-null int64
+cons_gas_12m                16075 non-null int64
+cons_last_month             16075 non-null int64
+forecast_base_bill_ele      16075 non-null float64
+forecast_base_bill_year     16075 non-null float64
+forecast_bill_12m           16075 non-null float64
+forecast_cons               16075 non-null float64
+forecast_cons_12m           16075 non-null float64
+forecast_cons_year          16075 non-null int64
+forecast_discount_energy    16075 non-null float64
+forecast_meter_rent_12m     16075 non-null float64
+forecast_price_energy_p1    16075 non-null float64
+forecast_price_energy_p2    16075 non-null float64
+forecast_price_pow_p1       16075 non-null float64
+has_gas                     16075 non-null category
+imp_cons                    16075 non-null float64
+margin_gross_pow_ele        16075 non-null float64
+margin_net_pow_ele          16075 non-null float64
+nb_prod_act                 16075 non-null int64
+net_margin                  16075 non-null float64
+num_years_antig             16075 non-null int64
+origin_up                   16075 non-null category
+pow_max                     16075 non-null float64
+churn                       16075 non-null int64
+price_p1_var                16075 non-null float64
+price_p2_var                16075 non-null float64
+price_p3_var                16075 non-null float64
+price_p1_fix                16075 non-null float64
+price_p2_fix                16075 non-null float64
+price_p3_fix                16075 non-null float64
+activity                    16075 non-null category
+activ_period                16073 non-null timedelta64[ns]
+modif_to_now                15922 non-null timedelta64[ns]
+renew_to_now                16035 non-null timedelta64[ns]
+dtypes: category(4), float64(21), int64(7), object(1), timedelta64[ns](3)
+memory usage: 4.5+ MB
+df_train.head()
+id	channel_sales	cons_12m	cons_gas_12m	cons_last_month	forecast_base_bill_ele	forecast_base_bill_year	forecast_bill_12m	forecast_cons	forecast_cons_12m	...	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix	activity	activ_period	modif_to_now	renew_to_now
+0	0002203ffbb812588b632b9e628cc38d	foosdfpfkusacimwkcsosbicdxkicaua	22034	0	3084	335.843857	335.843857	3837.441866	206.845165	729.06	...	0.124338	0.103794	0.073160	40.701732	24.421038	16.280694	unknown	2224 days	2173 days	310 days
+1	0004351ebdd665e6ee664792efc4fd13	foosdfpfkusacimwkcsosbicdxkicaua	4060	0	0	335.843857	335.843857	3837.441866	206.845165	597.77	...	0.146426	0.098935	0.072851	44.385450	25.423739	15.340735	unknown	2511 days	924 days	192 days
+2	0010bcc39e42b3c2131ed2ce55246e3c	usilxuppasemubllopkaafesmlibmsdf	7440	0	1062	335.843857	335.843857	3837.441866	206.845165	1311.16	...	0.181558	0.098935	0.072851	45.319710	25.423739	15.340735	unknown	1165 days	241 days	309 days
+3	0010ee3855fdea87602a5b7aba8e42de	lmkebamcaaclubfxadlmueccxoimlema	4199490	728810	456462	335.843857	335.843857	3837.441866	206.845165	11776.27	...	0.118757	0.098292	0.069032	40.647427	24.388455	16.258971	apdekpcbwosbxepsfxclislboipuxpop	2192 days	2040 days	207 days
+4	00114d74e963e47177db89bc70108537	ewpakwlliwisiwduibdlfmalxowmwpci	11272	0	0	335.843857	335.843857	3837.441866	206.845165	1671.41	...	0.147926	0.098935	0.072851	44.266930	25.423739	15.340735	unknown	2192 days	2131 days	298 days
+5 rows × 36 columns
+
+df_train['activ_period'] = df_train['activ_period'].dt.days 
+df_train.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 16075 entries, 0 to 16095
+Data columns (total 36 columns):
+id                          16075 non-null object
+channel_sales               16075 non-null category
+cons_12m                    16075 non-null int64
+cons_gas_12m                16075 non-null int64
+cons_last_month             16075 non-null int64
+forecast_base_bill_ele      16075 non-null float64
+forecast_base_bill_year     16075 non-null float64
+forecast_bill_12m           16075 non-null float64
+forecast_cons               16075 non-null float64
+forecast_cons_12m           16075 non-null float64
+forecast_cons_year          16075 non-null int64
+forecast_discount_energy    16075 non-null float64
+forecast_meter_rent_12m     16075 non-null float64
+forecast_price_energy_p1    16075 non-null float64
+forecast_price_energy_p2    16075 non-null float64
+forecast_price_pow_p1       16075 non-null float64
+has_gas                     16075 non-null category
+imp_cons                    16075 non-null float64
+margin_gross_pow_ele        16075 non-null float64
+margin_net_pow_ele          16075 non-null float64
+nb_prod_act                 16075 non-null int64
+net_margin                  16075 non-null float64
+num_years_antig             16075 non-null int64
+origin_up                   16075 non-null category
+pow_max                     16075 non-null float64
+churn                       16075 non-null int64
+price_p1_var                16075 non-null float64
+price_p2_var                16075 non-null float64
+price_p3_var                16075 non-null float64
+price_p1_fix                16075 non-null float64
+price_p2_fix                16075 non-null float64
+price_p3_fix                16075 non-null float64
+activity                    16075 non-null category
+activ_period                16073 non-null float64
+modif_to_now                15922 non-null timedelta64[ns]
+renew_to_now                16035 non-null timedelta64[ns]
+dtypes: category(4), float64(22), int64(7), object(1), timedelta64[ns](2)
+memory usage: 4.5+ MB
+df_train.head()
+id	channel_sales	cons_12m	cons_gas_12m	cons_last_month	forecast_base_bill_ele	forecast_base_bill_year	forecast_bill_12m	forecast_cons	forecast_cons_12m	...	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix	activity	activ_period	modif_to_now	renew_to_now
+0	0002203ffbb812588b632b9e628cc38d	foosdfpfkusacimwkcsosbicdxkicaua	22034	0	3084	335.843857	335.843857	3837.441866	206.845165	729.06	...	0.124338	0.103794	0.073160	40.701732	24.421038	16.280694	unknown	2224.0	2173 days	310 days
+1	0004351ebdd665e6ee664792efc4fd13	foosdfpfkusacimwkcsosbicdxkicaua	4060	0	0	335.843857	335.843857	3837.441866	206.845165	597.77	...	0.146426	0.098935	0.072851	44.385450	25.423739	15.340735	unknown	2511.0	924 days	192 days
+2	0010bcc39e42b3c2131ed2ce55246e3c	usilxuppasemubllopkaafesmlibmsdf	7440	0	1062	335.843857	335.843857	3837.441866	206.845165	1311.16	...	0.181558	0.098935	0.072851	45.319710	25.423739	15.340735	unknown	1165.0	241 days	309 days
+3	0010ee3855fdea87602a5b7aba8e42de	lmkebamcaaclubfxadlmueccxoimlema	4199490	728810	456462	335.843857	335.843857	3837.441866	206.845165	11776.27	...	0.118757	0.098292	0.069032	40.647427	24.388455	16.258971	apdekpcbwosbxepsfxclislboipuxpop	2192.0	2040 days	207 days
+4	00114d74e963e47177db89bc70108537	ewpakwlliwisiwduibdlfmalxowmwpci	11272	0	0	335.843857	335.843857	3837.441866	206.845165	1671.41	...	0.147926	0.098935	0.072851	44.266930	25.423739	15.340735	unknown	2192.0	2131 days	298 days
+5 rows × 36 columns
+
+df_train['modif_to_now'] = df_train['modif_to_now'].dt.days 
+df_train['renew_to_now'] = df_train['renew_to_now'].dt.days 
+#df_train.info()
+#missing_values_precentage(df_train)
+df_train = df_train.fillna(df_train.mean())
+missing_values_precentage(df_train)
+Missing Values	% of Total Values
+id	0	0.0
+channel_sales	0	0.0
+cons_12m	0	0.0
+cons_gas_12m	0	0.0
+cons_last_month	0	0.0
+forecast_base_bill_ele	0	0.0
+forecast_base_bill_year	0	0.0
+forecast_bill_12m	0	0.0
+forecast_cons	0	0.0
+forecast_cons_12m	0	0.0
+forecast_cons_year	0	0.0
+forecast_discount_energy	0	0.0
+forecast_meter_rent_12m	0	0.0
+forecast_price_energy_p1	0	0.0
+forecast_price_energy_p2	0	0.0
+forecast_price_pow_p1	0	0.0
+has_gas	0	0.0
+imp_cons	0	0.0
+margin_gross_pow_ele	0	0.0
+margin_net_pow_ele	0	0.0
+nb_prod_act	0	0.0
+net_margin	0	0.0
+num_years_antig	0	0.0
+origin_up	0	0.0
+pow_max	0	0.0
+churn	0	0.0
+price_p1_var	0	0.0
+price_p2_var	0	0.0
+price_p3_var	0	0.0
+price_p1_fix	0	0.0
+price_p2_fix	0	0.0
+price_p3_fix	0	0.0
+activity	0	0.0
+activ_period	0	0.0
+modif_to_now	0	0.0
+renew_to_now	0	0.0
+Visualize data to get some insights
+ax = sns.countplot(x='churn', data=df_train, palette="colorblind")
+
+labels = 'Churned', 'Not Churned'
+sizes = [592, 5833]
+colors = ['steelblue', 'seagreen']
+explode = (0.1, 0)  # explode 1st slice
+ 
+# Plot
+plt.pie(sizes, explode=explode, labels=labels, colors=colors,
+        autopct='%1.1f%%', shadow=True, startangle=140)
+ 
+plt.axis('equal')
+plt.show()
+
+df_train.churn.value_counts()
+0    14480
+1     1595
+Name: churn, dtype: int64
+df_train.churn.value_counts()/len(df_train)
+0    0.900778
+1    0.099222
+Name: churn, dtype: float64
+Channel of sales VS. churn
+g = sns.factorplot(x='channel_sales',y='churn',data=df_train,kind='bar', size = 6, 
+palette = 'colorblind')
+g.despine(left=True)
+g = g.set_ylabels('churn')
+g.set_xticklabels(rotation=30)
+<seaborn.axisgrid.FacetGrid at 0xe8b47d0>
+
+sns.set_context("paper", font_scale=1.8) 
+dx = sns.barplot(x='channel_sales',y='churn',data=df_train, palette="colorblind")
+#dx.set_title('Sales Channel VS. Average Churn Rate')
+dx.set(xlabel='Sales Channel', ylabel='Average Churn Rate')
+dx.set(xticklabels=[])
+[[]]
+
+plt.figure(figsize=(2,2))
+ex = sns.barplot(y='channel_sales',x='churn',data=df_train, palette="colorblind")
+
+df_train[['channel_sales', 'churn']].groupby(['channel_sales'], as_index=False).mean().sort_values(by='churn', ascending=False)
+channel_sales	churn
+1	foosdfpfkusacimwkcsosbicdxkicaua	0.107565
+3	usilxuppasemubllopkaafesmlibmsdf	0.103878
+0	ewpakwlliwisiwduibdlfmalxowmwpci	0.084974
+2	lmkebamcaaclubfxadlmueccxoimlema	0.055958
+sns.barplot(x='has_gas', y='churn', hue='channel_sales', data=df_train, palette = 'colorblind')
+# Put the legend out of the figure
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0)
+<matplotlib.legend.Legend at 0x131d14b0>
+
+sns.set_context("paper", font_scale=1.8) 
+fx = sns.barplot(x='has_gas', y='churn', hue='channel_sales', data=df_train, palette="colorblind")
+#fx.set_title('Also A Gas Client VS. Average Churn Rate')
+fx.set(xlabel='Also A Gas Client?', ylabel='Average Churn Rate')
+fx.set(xticklabels=['No', 'Yes'])
+
+plt.legend(bbox_to_anchor=(1.05, 1), loc=0, borderaxespad=0, title = 'Sales Channel')
+<matplotlib.legend.Legend at 0x9c0fe70>
+
+df_train[['has_gas', 'churn']].groupby(['has_gas'], as_index=False).mean().sort_values(by='churn', ascending=False)
+has_gas	churn
+0	f	0.103782
+1	t	0.079027
+g = sns.factorplot(x='origin_up',y='churn',data=df_train,kind='bar', size = 6, 
+palette = 'colorblind')
+g.despine(left=True)
+g = g.set_ylabels('churn')
+g.set_xticklabels(rotation=30)
+<seaborn.axisgrid.FacetGrid at 0xacc63f0>
+
+sns.set_context("paper", font_scale=1.8) 
+gx = sns.barplot(x='origin_up',y='churn',data=df_train, palette="colorblind")
+#gx.set_title('Also A Gas Client VS. Average Churn Rate')
+gx.set(xlabel='Electricity Campaign the Customer \n First Subscribed to', ylabel='Average Churn Rate')
+gx.set(xticklabels=[])
+[[]]
+
+plt.figure(figsize=(2,1))
+ex = sns.barplot(y='origin_up',x='churn',data=df_train, palette="colorblind")
+
+df_train[['origin_up', 'churn']].groupby(['origin_up'], as_index=False).mean().sort_values(by='churn', ascending=False)
+origin_up	churn
+2	lxidpiddsbxsbosboudacockeimpuepw	0.128351
+1	ldkssxwpmemidmecebumciepifcamkci	0.086254
+0	kamkkxfxxuwbdslkwifmmcsiusiuosws	0.058693
+g = sns.factorplot(x='activity',y='churn',data=df_train,kind='bar', size = 6, 
+palette = 'colorblind')
+g.despine(left=True)
+g = g.set_ylabels('churn')
+g.set_xticklabels(rotation=30)
+<seaborn.axisgrid.FacetGrid at 0x12b84cf0>
+
+sns.set_context("paper", font_scale=1.8) 
+hx = sns.barplot(x='activity',y='churn',data=df_train, palette="GnBu_d")
+#gx.set_title('Also A Gas Client VS. Average Churn Rate')
+hx.set(xlabel='category of the company\'s activity', ylabel='Average Churn Rate')
+hx.set(xticklabels=[])
+[[]]
+
+plt.figure(figsize=(2,1))
+ex = sns.barplot(y='activity', x='churn',data=df_train, palette="GnBu_d")
+
+df_train[['activity', 'churn']].groupby(['activity'], as_index=False).mean().sort_values(by='churn', ascending=False)
+activity	churn
+2	unknown	0.103992
+1	kkklcdamwfafdcfwofuscwfwadblfmce	0.090047
+0	apdekpcbwosbxepsfxclislboipuxpop	0.059048
+g = sns.factorplot(x='nb_prod_act',y='churn',data=df_train,kind='bar', size = 6, 
+palette = 'colorblind')
+g.despine(left=True)
+g = g.set_ylabels('churn')
+g.set_xticklabels(rotation=30)
+<seaborn.axisgrid.FacetGrid at 0xe527f10>
+
+Remove outliers
+#numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+#df_train.select_dtypes(include=numerics).columns
+def remove_outlier(df_in, col_name):
+    q1 = df_in[col_name].quantile(0.25)
+    q3 = df_in[col_name].quantile(0.75)
+    iqr = q3-q1 #Interquartile range
+    fence_low  = q1-1.5*iqr
+    fence_high = q3+1.5*iqr
+    df_out = df_in.loc[(df_in[col_name] > fence_low) & (df_in[col_name] < fence_high)]
+    return df_out
+#for col in ['cons_12m', 'cons_gas_12m', 'cons_last_month', 'forecast_base_bill_ele',
+       #'forecast_base_bill_year', 'forecast_bill_12m', 'forecast_cons',
+       #'forecast_cons_12m', 'forecast_cons_year', 'forecast_discount_energy',
+       #'forecast_meter_rent_12m', 'forecast_price_energy_p1',
+       #'forecast_price_energy_p2', 'forecast_price_pow_p1', 'imp_cons',
+      # 'margin_gross_pow_ele', 'margin_net_pow_ele', 'nb_prod_act',
+      # 'net_margin', 'num_years_antig', 'pow_max', 'churn', 'price_p1_var',
+      # 'price_p2_var', 'price_p3_var', 'price_p1_fix', 'price_p2_fix',
+       #'price_p3_fix', 'activ_period', 'modif_to_now', 'renew_to_now']:
+    #df_train = remove_outlier(df_train, col)
+df_train = remove_outlier(df_train, 'price_p1_var')
+#sns.boxplot(x='churn',y='price_p1_var',data=df_train, palette = 'colorblind')
+
+sns.set_context("paper", font_scale=1.8) 
+lx = sns.boxplot(x='churn',y='price_p1_var',data=df_train, palette = 'colorblind')
+#gx.set_title('Also A Gas Client VS. Average Churn Rate')
+lx.set(ylabel='Price of Energy for \n the 1st Period')
+lx.set(xticklabels=['Not Churned', 'Churned'])
+[[Text(0,0,'Not Churned'), Text(0,0,'Churned')]]
+
+df_train = remove_outlier(df_train, 'price_p2_var')
+sns.set_context("paper", font_scale=1.8) 
+mx = sns.boxplot(x='churn',y='price_p2_var',data=df_train, palette = 'colorblind')
+
+#gx.set_title('Also A Gas Client VS. Average Churn Rate')
+mx.set(ylabel='Price of Energy for \n the 2st Period')
+mx.set(xticklabels=['Not Churned', 'Churned'])
+[[Text(0,0,'Not Churned'), Text(0,0,'Churned')]]
+
+df_train = remove_outlier(df_train, 'price_p3_var')
+sns.boxplot(x='churn',y='price_p3_var',data=df_train)
+<matplotlib.axes._subplots.AxesSubplot at 0x14fb6d10>
+
+df_train = remove_outlier(df_train, 'price_p1_fix')
+sns.set_context("paper", font_scale=1.8) 
+nx = sns.boxplot(x='churn',y='price_p1_fix',data=df_train, palette = 'colorblind')
+
+#gx.set_title('Also A Gas Client VS. Average Churn Rate')
+nx.set(ylabel='Price of Power for \n the 1st Period')
+nx.set(xticklabels=['Not Churned', 'Churned'])
+[[Text(0,0,'Not Churned'), Text(0,0,'Churned')]]
+
+#df_train = remove_outlier(df_train, 'price_p2_fix')
+sns.boxplot(x='churn',y='price_p2_fix',data=df_train)
+<matplotlib.axes._subplots.AxesSubplot at 0x15027070>
+
+#df_train = remove_outlier(df_train, 'price_p3_fix')
+sns.boxplot(x='churn',y='price_p3_fix',data=df_train)
+<matplotlib.axes._subplots.AxesSubplot at 0x152eac10>
+
+#ax = sns.violinplot(x="churn", y="activ_period", data=df_train, palette="muted")
+def remove_outlier(df_in, col_name):
+    q1 = df_in[col_name].quantile(0.25)
+    q3 = df_in[col_name].quantile(0.75)
+    iqr = q3-q1 #Interquartile range
+    fence_low  = q1-1.5*iqr
+    fence_high = q3+1.5*iqr
+    df_out = df_in.loc[(df_in[col_name] > fence_low) & (df_in[col_name] < fence_high)]
+    return df_out
+df_train = remove_outlier(df_train, 'activ_period')
+#ax = sns.violinplot(x="churn", y="activ_period", data=df_train, palette="colorblind")
+
+sns.set_context("paper", font_scale=1.8) 
+ox = sns.violinplot(x="churn", y="activ_period", data=df_train, palette="colorblind")
+
+#gx.set_title('Also A Gas Client VS. Average Churn Rate')
+ox.set(ylabel='Contract Active \n Period (days)')
+ox.set(xticklabels=['Not Churned', 'Churned'])
+[[Text(0,0,'Not Churned'), Text(0,0,'Churned')]]
+
+df_train = remove_outlier(df_train, 'renew_to_now')
+ax = sns.boxplot(x="churn", y="renew_to_now", data=df_train, palette="colorblind")
+
+df_train = remove_outlier(df_train, 'modif_to_now')
+#ax = sns.boxplot(x='churn', y='modif_to_now', data=df_train, palette='colorblind')
+
+sns.set_context("paper", font_scale=1.8) 
+px = sns.boxplot(x='churn', y='modif_to_now', data=df_train, palette='colorblind')
+
+#gx.set_title('Also A Gas Client VS. Average Churn Rate')
+px.set(ylabel='Number of Days Since \n Last Product Modification')
+px.set(xticklabels=['Not Churned', 'Churned'])
+[[Text(0,0,'Not Churned'), Text(0,0,'Churned')]]
+
+Subscribed power VS. Consumption
+#g = sns.jointplot(x="cons_12m", y="pow_max", data=df_train)
+df_b = df_train
+df_b["cons_12m"] = df_b["cons_12m"].apply(lambda x: x/1000000)
+
+qx = sns.regplot(x="cons_12m", y="pow_max", data=df_b[df_b.pow_max < 30])
+qx.set(xlabel = 'Electricity Consumption (in Millions)', ylabel='Subscribed Power')
+
+#qx = sns.regplot(x="cons_12m", y="pow_max", data=df_train[df_train.pow_max < 30])
+[Text(0,0.5,'Subscribed Power'),
+ Text(0.5,0,'Electricity Consumption (in Millions)')]
+
+#g = sns.jointplot(x="cons_gas_12m", y="pow_max", data=df_train)
+df_a = df_train
+df_a["cons_gas_12m"] = df_a["cons_gas_12m"].apply(lambda x: x/1000000)
+
+rx = sns.regplot(x="cons_gas_12m", y="pow_max", data=df_a[df_a.pow_max < 30])
+
+rx.set(xlabel = 'Gas Consumption (in Millions)', ylabel='Subscribed Power')
+#rx.set(xticklabels=['0M', '0.5M', '1M', '1.5M', '2M'])
+
+#X_new[col] = X_new[col].apply(lambda x: x*0.8)
+[Text(0,0.5,'Subscribed Power'), Text(0.5,0,'Gas Consumption (in Millions)')]
+
+df_train.dtypes
+id                            object
+channel_sales               category
+cons_12m                     float64
+cons_gas_12m                 float64
+cons_last_month                int64
+forecast_base_bill_ele       float64
+forecast_base_bill_year      float64
+forecast_bill_12m            float64
+forecast_cons                float64
+forecast_cons_12m            float64
+forecast_cons_year             int64
+forecast_discount_energy     float64
+forecast_meter_rent_12m      float64
+forecast_price_energy_p1     float64
+forecast_price_energy_p2     float64
+forecast_price_pow_p1        float64
+has_gas                     category
+imp_cons                     float64
+margin_gross_pow_ele         float64
+margin_net_pow_ele           float64
+nb_prod_act                    int64
+net_margin                   float64
+num_years_antig                int64
+origin_up                   category
+pow_max                      float64
+churn                          int64
+price_p1_var                 float64
+price_p2_var                 float64
+price_p3_var                 float64
+price_p1_fix                 float64
+price_p2_fix                 float64
+price_p3_fix                 float64
+activity                    category
+activ_period                 float64
+modif_to_now                 float64
+renew_to_now                 float64
+dtype: object
+cat_columns = df_train.select_dtypes(['category']).columns
+cat_columns
+Index(['channel_sales', 'has_gas', 'origin_up', 'activity'], dtype='object')
+from sklearn.preprocessing import LabelEncoder
+
+lb_channel = LabelEncoder()
+df_train['channel_code'] = lb_channel.fit_transform(df_train['channel_sales'])
+df_train[['channel_code', 'channel_sales']].head(11)
+channel_code	channel_sales
+1	1	foosdfpfkusacimwkcsosbicdxkicaua
+4	0	ewpakwlliwisiwduibdlfmalxowmwpci
+7	0	ewpakwlliwisiwduibdlfmalxowmwpci
+10	1	foosdfpfkusacimwkcsosbicdxkicaua
+12	1	foosdfpfkusacimwkcsosbicdxkicaua
+13	1	foosdfpfkusacimwkcsosbicdxkicaua
+15	1	foosdfpfkusacimwkcsosbicdxkicaua
+18	1	foosdfpfkusacimwkcsosbicdxkicaua
+19	1	foosdfpfkusacimwkcsosbicdxkicaua
+24	1	foosdfpfkusacimwkcsosbicdxkicaua
+26	3	usilxuppasemubllopkaafesmlibmsdf
+lb_origin = LabelEncoder()
+df_train['origin_code'] = lb_origin.fit_transform(df_train['origin_up'])
+df_train[['origin_code', 'origin_up']].head(11)
+origin_code	origin_up
+1	0	kamkkxfxxuwbdslkwifmmcsiusiuosws
+4	0	kamkkxfxxuwbdslkwifmmcsiusiuosws
+7	1	ldkssxwpmemidmecebumciepifcamkci
+10	0	kamkkxfxxuwbdslkwifmmcsiusiuosws
+12	1	ldkssxwpmemidmecebumciepifcamkci
+13	2	lxidpiddsbxsbosboudacockeimpuepw
+15	2	lxidpiddsbxsbosboudacockeimpuepw
+18	2	lxidpiddsbxsbosboudacockeimpuepw
+19	2	lxidpiddsbxsbosboudacockeimpuepw
+24	0	kamkkxfxxuwbdslkwifmmcsiusiuosws
+26	0	kamkkxfxxuwbdslkwifmmcsiusiuosws
+lb_has_gas = LabelEncoder()
+df_train['hasgas_code'] = lb_has_gas.fit_transform(df_train['has_gas'])
+df_train[['hasgas_code', 'has_gas']].head(11)
+hasgas_code	has_gas
+1	0	f
+4	0	f
+7	0	f
+10	0	f
+12	0	f
+13	0	f
+15	1	t
+18	0	f
+19	0	f
+24	0	f
+26	0	f
+lb_channel = LabelEncoder()
+df_train['activity_code'] = lb_channel.fit_transform(df_train['activity'])
+df_train[['activity_code', 'activity']].head(11)
+activity_code	activity
+1	2	unknown
+4	2	unknown
+7	2	unknown
+10	2	unknown
+12	1	kkklcdamwfafdcfwofuscwfwadblfmce
+13	2	unknown
+15	2	unknown
+18	2	unknown
+19	2	unknown
+24	2	unknown
+26	2	unknown
+df_train.drop(['channel_sales', 'origin_up','activity', 'has_gas'], axis=1, inplace=True)
+df_train.dtypes
+id                           object
+cons_12m                    float64
+cons_gas_12m                float64
+cons_last_month               int64
+forecast_base_bill_ele      float64
+forecast_base_bill_year     float64
+forecast_bill_12m           float64
+forecast_cons               float64
+forecast_cons_12m           float64
+forecast_cons_year            int64
+forecast_discount_energy    float64
+forecast_meter_rent_12m     float64
+forecast_price_energy_p1    float64
+forecast_price_energy_p2    float64
+forecast_price_pow_p1       float64
+imp_cons                    float64
+margin_gross_pow_ele        float64
+margin_net_pow_ele          float64
+nb_prod_act                   int64
+net_margin                  float64
+num_years_antig               int64
+pow_max                     float64
+churn                         int64
+price_p1_var                float64
+price_p2_var                float64
+price_p3_var                float64
+price_p1_fix                float64
+price_p2_fix                float64
+price_p3_fix                float64
+activ_period                float64
+modif_to_now                float64
+renew_to_now                float64
+channel_code                  int32
+origin_code                   int32
+hasgas_code                   int32
+activity_code                 int32
+dtype: object
+df_train.columns.values
+array(['id', 'cons_12m', 'cons_gas_12m', 'cons_last_month',
+       'forecast_base_bill_ele', 'forecast_base_bill_year',
+       'forecast_bill_12m', 'forecast_cons', 'forecast_cons_12m',
+       'forecast_cons_year', 'forecast_discount_energy',
+       'forecast_meter_rent_12m', 'forecast_price_energy_p1',
+       'forecast_price_energy_p2', 'forecast_price_pow_p1', 'imp_cons',
+       'margin_gross_pow_ele', 'margin_net_pow_ele', 'nb_prod_act',
+       'net_margin', 'num_years_antig', 'pow_max', 'churn', 'price_p1_var',
+       'price_p2_var', 'price_p3_var', 'price_p1_fix', 'price_p2_fix',
+       'price_p3_fix', 'activ_period', 'modif_to_now', 'renew_to_now',
+       'channel_code', 'origin_code', 'hasgas_code', 'activity_code'], dtype=object)
+#numerical data analysis
+#sns.set(font_scale = 1.2)
+plt.figure(figsize=(28,20))
+g = sns.heatmap(df_train[['churn', 'cons_12m', 'cons_gas_12m', 'cons_last_month',
+       'forecast_base_bill_ele', 'forecast_base_bill_year',
+       'forecast_bill_12m', 'forecast_cons', 'forecast_cons_12m',
+       'forecast_cons_year', 'forecast_discount_energy',
+       'forecast_meter_rent_12m', 'forecast_price_energy_p1',
+       'forecast_price_energy_p2', 'forecast_price_pow_p1', 'imp_cons',
+       'margin_gross_pow_ele', 'margin_net_pow_ele', 'nb_prod_act',
+       'net_margin', 'num_years_antig', 'pow_max', 'price_p1_var',
+       'price_p2_var', 'price_p3_var', 'price_p1_fix', 'price_p2_fix',
+       'price_p3_fix', 'activ_period', 'modif_to_now', 'renew_to_now',
+      ]].corr(),annot=True, fmt = '.2f', linewidth = .5, cmap = 'coolwarm')
+
+# delete redundant predictors that are highly correlated with other predictors
+#'cons_last_month', 'forecast_base_bill_ele', 'forecast_bill_12m', 'forecast_cons', 'net_margin', 
+# 'imp_cons',
+#'forecast_meter_rent_12m', 'forecast_price_energy_p1','forecast_price_energy_p2',  'margin_net_pow_ele', 
+#'activ_period', 'price_p3_fix','price_p2_fix','price_p2_var', 'price_p1_fix',
+plt.figure(figsize=(20,20))
+g = sns.heatmap(df_train[['churn', 'cons_12m', 'cons_gas_12m',
+       'forecast_base_bill_year', 'forecast_cons_12m','forecast_cons_year',
+       'forecast_discount_energy',
+       'forecast_price_pow_p1', 
+       'margin_gross_pow_ele', 'nb_prod_act',
+       'num_years_antig', 'pow_max', 'price_p1_var',
+       'price_p3_var',  
+        'modif_to_now', 'renew_to_now',
+      ]].corr(),annot=True, fmt = '.2f', linewidth = .5, cmap = 'coolwarm')
+
+# Now drop those columns in df_train
+
+df_train.drop(['cons_last_month', 'forecast_base_bill_ele', 'forecast_bill_12m', 'forecast_cons', 'net_margin', 
+'imp_cons','forecast_meter_rent_12m', 'forecast_price_energy_p1','forecast_price_energy_p2','margin_net_pow_ele', 
+'activ_period', 'price_p3_fix','price_p2_fix','price_p2_var', 'price_p1_fix',], axis=1, inplace=True)
+
+#'cons_last_month', 'forecast_base_bill_ele', 'forecast_bill_12m', 'forecast_cons', 'net_margin', 
+#'imp_cons',
+#'forecast_meter_rent_12m', 'forecast_price_energy_p1','forecast_price_energy_p2',  'margin_net_pow_ele', 
+#'activ_period', 'price_p3_fix','price_p2_fix','price_p2_var'
+df_train.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 6425 entries, 1 to 16092
+Data columns (total 21 columns):
+id                          6425 non-null object
+cons_12m                    6425 non-null float64
+cons_gas_12m                6425 non-null float64
+forecast_base_bill_year     6425 non-null float64
+forecast_cons_12m           6425 non-null float64
+forecast_cons_year          6425 non-null int64
+forecast_discount_energy    6425 non-null float64
+forecast_price_pow_p1       6425 non-null float64
+margin_gross_pow_ele        6425 non-null float64
+nb_prod_act                 6425 non-null int64
+num_years_antig             6425 non-null int64
+pow_max                     6425 non-null float64
+churn                       6425 non-null int64
+price_p1_var                6425 non-null float64
+price_p3_var                6425 non-null float64
+modif_to_now                6425 non-null float64
+renew_to_now                6425 non-null float64
+channel_code                6425 non-null int32
+origin_code                 6425 non-null int32
+hasgas_code                 6425 non-null int32
+activity_code               6425 non-null int32
+dtypes: float64(12), int32(4), int64(4), object(1)
+memory usage: 1.2+ MB
+missing_values_precentage(df_train)
+Missing Values	% of Total Values
+id	0	0.0
+cons_12m	0	0.0
+cons_gas_12m	0	0.0
+forecast_base_bill_year	0	0.0
+forecast_cons_12m	0	0.0
+forecast_cons_year	0	0.0
+forecast_discount_energy	0	0.0
+forecast_price_pow_p1	0	0.0
+margin_gross_pow_ele	0	0.0
+nb_prod_act	0	0.0
+num_years_antig	0	0.0
+pow_max	0	0.0
+churn	0	0.0
+price_p1_var	0	0.0
+price_p3_var	0	0.0
+modif_to_now	0	0.0
+renew_to_now	0	0.0
+channel_code	0	0.0
+origin_code	0	0.0
+hasgas_code	0	0.0
+activity_code	0	0.0
+Modeling
+X = df_train.drop('churn', axis=1)
+y = df_train['churn']
+X = X.apply(pd.to_numeric, errors='coerce')
+y = y.apply(pd.to_numeric, errors='coerce')
+
+X.fillna(0, inplace=True)
+y.fillna(0, inplace=True)
+### Splitting the training data
+from sklearn.model_selection import train_test_split
+
+x_train, x_test, y_train, y_test = train_test_split(X,y,test_size = .25, random_state = 1)
+# Feature Scaling
+#from sklearn.preprocessing import StandardScaler
+#sc = StandardScaler()
+#x_train = sc.fit_transform(x_train)
+#x_test = sc.transform(x_test)
+## Necessary modules for creating models. 
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.ensemble import BaggingClassifier
+from sklearn.metrics import accuracy_score,classification_report, precision_recall_curve, confusion_matrix
+from sklearn.linear_model import LogisticRegression
+logreg = LogisticRegression(solver='liblinear', penalty='l1')
+logreg.fit(x_train,y_train)
+y_pred = logreg.predict(x_test)
+logreg_accy = round(accuracy_score(y_pred,y_test), 3)
+print (logreg_accy)
+0.914
+print (classification_report(y_test, y_pred, labels=logreg.classes_))
+print (confusion_matrix(y_pred, y_test))
+             precision    recall  f1-score   support
+
+          0       0.91      1.00      0.95      1468
+          1       0.00      0.00      0.00       139
+
+avg / total       0.83      0.91      0.87      1607
+
+[[1468  139]
+ [   0    0]]
+C:\Users\Shiqing\Anaconda3\lib\site-packages\sklearn\metrics\classification.py:1135: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+from sklearn.neighbors import KNeighborsClassifier
+
+knn = KNeighborsClassifier(weights="uniform", )
+knn.fit(x_train, y_train)
+y_pred = knn.predict(x_test)
+knn_accy = round(accuracy_score(y_test, y_pred), 3)
+print (knn_accy)
+0.91
+# Gaussian Naive Bayes
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+
+gaussian = GaussianNB()
+gaussian.fit(x_train, y_train)
+y_pred = gaussian.predict(x_test)
+gaussian_accy = round(accuracy_score(y_pred, y_test), 3)
+print(gaussian_accy)
+0.732
+# Support Vector Machines
+from sklearn.svm import SVC
+
+svc = SVC()
+svc.fit(x_train, y_train)
+y_pred = svc.predict(x_test)
+svc_accy = round(accuracy_score(y_pred, y_test), 3)
+print(svc_accy)
+0.914
+from sklearn.ensemble import RandomForestClassifier
+randomforest = RandomForestClassifier()
+#randomforest = RandomForestClassifier(class_weight='balanced', n_jobs=-1)
+randomforest.fit(x_train, y_train)
+y_pred = randomforest.predict(x_test)
+random_accy = round(accuracy_score(y_pred, y_test), 3)
+print (random_accy)
+0.916
+Customers' probability to churn
+X_prob = X
+
+X_prob['churn_prob'] = randomforest.predict_proba(X_prob)[:, 1]
+X_prob.head()
+id	cons_12m	cons_gas_12m	forecast_base_bill_year	forecast_cons_12m	forecast_cons_year	forecast_discount_energy	forecast_price_pow_p1	margin_gross_pow_ele	nb_prod_act	...	pow_max	price_p1_var	price_p3_var	modif_to_now	renew_to_now	channel_code	origin_code	hasgas_code	activity_code	churn_prob
+1	0.0	4060	0	335.843857	597.77	0	0.0	44.311378	24.42	1	...	13.200	0.146426	0.072851	924.0	192.0	1	0	0	2	0.1
+4	0.0	11272	0	335.843857	1671.41	0	0.0	44.311378	29.76	1	...	13.200	0.147926	0.072851	2131.0	298.0	0	0	0	2	0.0
+7	0.0	16072	0	335.843857	2363.54	5501	0.0	44.311378	29.76	1	...	13.200	0.147637	0.072851	1061.0	330.0	0	1	0	2	0.1
+10	0.0	12128	0	335.843857	1769.73	0	0.0	44.311378	22.95	1	...	13.856	0.145099	0.072851	186.0	472.0	1	0	0	2	0.7
+12	0.0	12500	0	335.843857	1839.43	1461	0.0	44.311378	19.28	1	...	13.200	0.147308	0.072851	2402.0	207.0	1	1	0	1	0.0
+5 rows × 21 columns
+
+X_prob.sort_values(by=['churn_prob'], ascending=False).head()
+id	cons_12m	cons_gas_12m	forecast_base_bill_year	forecast_cons_12m	forecast_cons_year	forecast_discount_energy	forecast_price_pow_p1	margin_gross_pow_ele	nb_prod_act	...	pow_max	price_p1_var	price_p3_var	modif_to_now	renew_to_now	channel_code	origin_code	hasgas_code	activity_code	churn_prob
+4010	0.0	155441	0	0.000000	975.70	0	0.0	44.311378	24.42	1	...	13.200	0.148958	0.072851	973.0	242.0	1	2	0	1	1.0
+9781	0.0	94191	0	335.843857	509.81	297	0.0	44.311378	26.04	1	...	10.392	0.148958	0.072851	2068.0	241.0	1	2	0	2	1.0
+11742	0.0	48667	0	335.843857	313.06	0	0.0	44.311378	9.92	1	...	13.200	0.144937	0.072851	800.0	68.0	0	1	0	2	1.0
+12034	0.0	94191	0	335.843857	504.93	295	0.0	44.311378	26.04	1	...	10.392	0.148958	0.072851	2068.0	241.0	1	2	0	2	1.0
+2524	0.0	19625	0	0.000000	397.53	0	0.0	46.305378	26.73	1	...	13.200	0.149163	0.072851	103.0	38.0	1	2	0	2	1.0
+5 rows × 21 columns
+
+X_prob[X_prob.churn_prob > 0.85]
+id	cons_12m	cons_gas_12m	forecast_base_bill_year	forecast_cons_12m	forecast_cons_year	forecast_discount_energy	forecast_price_pow_p1	margin_gross_pow_ele	nb_prod_act	...	pow_max	price_p1_var	price_p3_var	modif_to_now	renew_to_now	channel_code	origin_code	hasgas_code	activity_code	churn_prob
+460	0.0	48667	0	335.843857	312.83	0	0.000000	44.311378	9.92	1	...	13.200	0.144937	0.072851	800.00000	68.0	0	1	0	2	1.0
+959	0.0	3857	0	335.843857	583.44	0	0.000000	45.806878	18.08	1	...	10.350	0.150822	0.072851	1534.00000	70.0	1	1	0	2	0.9
+963	0.0	32247	0	335.843857	1596.52	0	0.000000	44.311378	12.48	1	...	14.490	0.149682	0.072851	793.00000	116.0	3	2	0	2	0.9
+1110	0.0	2524	0	335.843857	379.67	0	0.000000	44.311378	9.92	1	...	13.200	0.149712	0.072851	2278.00000	82.0	1	0	0	2	0.9
+1150	0.0	8169	0	0.000000	470.18	0	0.000000	44.311378	31.64	1	...	13.856	0.151265	0.072851	553.00000	298.0	1	2	0	2	1.0
+1180	0.0	8923	0	335.843857	1312.62	811	0.000000	44.311378	16.44	1	...	13.856	0.147708	0.072851	198.00000	147.0	1	2	0	2	0.9
+1196	0.0	954386	80902	335.843857	3400.49	3157	0.000000	44.311378	29.64	2	...	13.150	0.146732	0.072851	2284.00000	92.0	1	2	1	2	0.9
+1252	0.0	28763	0	335.843857	3730.07	0	0.000000	44.311378	27.14	1	...	13.200	0.147814	0.072851	1143.00000	45.0	3	1	0	2	0.9
+1314	0.0	38346	0	335.843857	5621.12	6438	0.000000	44.311378	29.76	1	...	13.200	0.146853	0.072851	103.00000	52.0	0	0	0	2	0.9
+1372	0.0	16632	0	0.000000	432.45	0	0.000000	44.311378	34.68	1	...	13.856	0.150453	0.072851	44.00000	-25.0	1	2	0	2	0.9
+1682	0.0	31557	0	335.843857	801.53	0	0.000000	44.311378	18.62	1	...	13.200	0.145096	0.072851	163.00000	177.0	1	0	0	1	0.9
+1854	0.0	155441	0	0.000000	845.92	0	0.000000	44.311378	24.42	1	...	13.200	0.148958	0.072851	973.00000	242.0	1	2	0	1	1.0
+2020	0.0	21257	0	335.843857	3161.43	2508	0.000000	44.311378	31.20	1	...	13.856	0.148543	0.072851	470.00000	103.0	1	2	0	2	0.9
+2509	0.0	1141	0	0.000000	171.91	0	0.991547	43.533496	26.76	1	...	10.700	0.150704	0.072851	1143.00000	45.0	1	2	0	2	0.9
+2524	0.0	19625	0	0.000000	397.53	0	0.000000	46.305378	26.73	1	...	13.200	0.149163	0.072851	103.00000	38.0	1	2	0	2	1.0
+2636	0.0	19625	0	0.000000	416.91	0	0.000000	46.305378	26.73	1	...	13.200	0.149163	0.072851	103.00000	38.0	1	2	0	2	1.0
+2839	0.0	4213	0	335.843857	523.18	0	0.000000	44.311378	24.40	1	...	15.000	0.149855	0.072851	1292.00000	192.0	1	2	0	2	0.9
+3030	0.0	765101	0	335.843857	5654.24	0	0.000000	44.311378	28.45	1	...	13.856	0.147017	0.072851	785.00000	228.0	2	1	0	2	0.9
+3078	0.0	4289	0	335.843857	628.86	0	0.000000	45.806878	37.56	1	...	15.000	0.146198	0.072851	1834.00000	32.0	1	2	0	2	0.9
+3405	0.0	2459	0	112.760000	371.36	13	0.000000	44.311378	32.72	1	...	13.856	0.149682	0.072851	1557.00000	95.0	1	2	0	2	0.9
+3574	0.0	12550	1001	0.000000	1153.42	0	0.000000	44.311378	19.20	2	...	10.390	0.148607	0.072851	262.00000	226.0	3	2	0	2	0.9
+3848	0.0	6372	0	0.000000	440.99	0	0.000000	46.305378	26.04	1	...	10.392	0.148970	0.072851	103.00000	40.0	1	2	0	2	0.9
+3946	0.0	15939	0	335.843857	2355.98	1455	0.000000	44.311378	24.84	1	...	11.000	0.147756	0.072851	61.00000	24.0	1	2	0	2	0.9
+4010	0.0	155441	0	0.000000	975.70	0	0.000000	44.311378	24.42	1	...	13.200	0.148958	0.072851	973.00000	242.0	1	2	0	1	1.0
+4116	0.0	12353	0	225.320000	472.42	741	0.000000	46.305378	20.54	1	...	10.392	0.149577	0.072851	61.00000	2.0	1	2	0	2	1.0
+4156	0.0	3841	0	335.843857	575.01	333	0.000000	44.311378	32.88	1	...	13.150	0.149739	0.072851	799.00000	82.0	1	2	0	2	0.9
+4240	0.0	2549	0	335.843857	379.82	208	0.000000	44.311378	26.04	1	...	10.390	0.148958	0.072851	814.00000	82.0	1	2	0	2	0.9
+4631	0.0	51321	0	335.843857	370.27	0	0.000000	46.305378	33.12	1	...	13.200	0.149056	0.072851	63.00000	21.0	1	0	0	1	0.9
+4679	0.0	48667	0	335.843857	284.45	0	0.000000	44.311378	9.92	1	...	13.200	0.144937	0.072851	800.00000	68.0	0	1	0	2	1.0
+4817	0.0	5987	0	0.000000	883.98	0	0.000000	44.311378	33.12	1	...	13.200	0.147317	0.072851	173.00000	121.0	1	2	0	2	0.9
+...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...	...
+11742	0.0	48667	0	335.843857	313.06	0	0.000000	44.311378	9.92	1	...	13.200	0.144937	0.072851	800.00000	68.0	0	1	0	2	1.0
+12034	0.0	94191	0	335.843857	504.93	295	0.000000	44.311378	26.04	1	...	10.392	0.148958	0.072851	2068.00000	241.0	1	2	0	2	1.0
+12189	0.0	7110	0	335.843857	1057.16	0	0.000000	44.311378	26.04	1	...	10.392	0.148402	0.072851	450.00000	82.0	0	1	0	2	0.9
+12206	0.0	3175	0	335.843857	477.06	0	0.000000	45.806878	28.68	1	...	11.430	0.149865	0.072851	1886.00000	58.0	1	2	0	2	0.9
+12279	0.0	2822	0	335.843857	419.93	0	0.000000	44.311378	12.82	1	...	13.200	0.148612	0.072851	2297.00000	105.0	1	0	0	2	0.9
+12280	0.0	4772	0	232.040000	712.15	864	0.000000	45.806878	18.52	1	...	10.600	0.149184	0.072851	127.00000	65.0	1	2	0	2	1.0
+12549	0.0	999	621	335.843857	324.87	194	0.000000	44.311378	24.40	4	...	15.000	0.149855	0.072851	1112.73747	192.0	1	2	1	2	0.9
+12722	0.0	94191	0	335.843857	469.48	276	0.000000	44.311378	26.04	1	...	10.392	0.148958	0.072851	2068.00000	241.0	1	2	0	2	1.0
+13141	0.0	4456	349	335.843857	665.75	645	0.000000	44.311378	27.60	2	...	11.000	0.149641	0.072851	45.00000	-16.0	1	0	1	2	0.9
+13291	0.0	16556	0	0.000000	186.11	0	0.000000	44.311378	21.52	1	...	13.200	0.149855	0.072851	1303.00000	207.0	1	2	0	2	0.9
+13334	0.0	7519	0	335.843857	293.69	0	0.000000	44.311378	31.32	1	...	12.500	0.150643	0.072851	1453.00000	-9.0	1	2	0	2	0.9
+13451	0.0	19414	0	335.843857	2841.30	0	0.991547	43.533496	31.20	1	...	13.856	0.146540	0.072851	413.00000	-9.0	1	2	0	2	0.9
+13575	0.0	12975	0	335.843857	1352.48	0	0.000000	44.311378	17.62	1	...	12.500	0.149760	0.072851	563.00000	158.0	1	2	0	2	0.9
+13627	0.0	7102	0	335.843857	1061.51	0	0.000000	44.311378	33.12	1	...	13.200	0.148797	0.072851	2331.00000	139.0	1	0	0	2	1.0
+13642	0.0	21553	0	0.000000	3213.49	0	0.000000	44.311378	19.28	1	...	10.392	0.148282	0.072851	997.00000	264.0	1	2	0	2	0.9
+13862	0.0	176905	0	0.000000	2155.71	0	0.000000	44.311378	19.28	1	...	13.200	0.147308	0.072851	1112.73747	193.0	1	2	0	2	0.9
+14177	0.0	94191	0	335.843857	456.37	259	0.000000	44.311378	26.04	1	...	10.392	0.148958	0.072851	2068.00000	241.0	1	2	0	2	1.0
+14191	0.0	15929	9814	335.843857	2365.61	2532	0.000000	44.311378	28.34	2	...	13.800	0.148371	0.072851	2180.00000	298.0	1	0	1	2	0.9
+14536	0.0	13876	0	0.000000	2061.74	0	0.000000	44.311378	28.45	1	...	13.856	0.148371	0.072851	1375.00000	278.0	1	2	0	2	0.9
+14741	0.0	13297	0	0.000000	1960.23	0	0.000000	44.311378	31.20	1	...	13.860	0.146846	0.072851	2330.00000	138.0	1	2	0	2	0.9
+14906	0.0	48667	0	335.843857	332.36	0	0.000000	44.311378	9.92	1	...	13.200	0.144937	0.072851	800.00000	68.0	0	1	0	2	1.0
+15083	0.0	2108	0	335.843857	311.69	1949	0.000000	44.311378	19.48	1	...	13.856	0.149739	0.072851	793.00000	171.0	1	2	0	2	0.9
+15468	0.0	5415	0	335.843857	816.97	0	0.000000	44.311378	28.68	1	...	11.430	0.149682	0.072851	1579.00000	117.0	3	2	0	2	0.9
+15471	0.0	9443	0	335.843857	1415.20	0	0.000000	44.311378	37.56	1	...	15.000	0.149682	0.072851	759.00000	82.0	2	2	0	2	0.9
+15603	0.0	10421	0	335.843857	1543.53	0	0.991547	43.533496	29.76	2	...	13.200	0.147513	0.072851	35.00000	192.0	1	1	0	2	0.9
+15631	0.0	48667	0	335.843857	337.08	0	0.000000	44.311378	9.92	1	...	13.200	0.144937	0.072851	800.00000	68.0	0	1	0	2	1.0
+15742	0.0	9386	0	335.843857	1403.66	1905	0.000000	44.311378	31.64	1	...	13.856	0.149682	0.072851	1925.00000	98.0	1	1	0	2	0.9
+15750	0.0	18304	0	335.843857	2726.62	0	0.000000	44.311378	28.45	1	...	13.856	0.148371	0.072851	1025.00000	294.0	2	1	0	2	0.9
+15776	0.0	48667	0	335.843857	325.64	0	0.000000	44.311378	9.92	1	...	13.200	0.144937	0.072851	800.00000	68.0	0	1	0	2	1.0
+15860	0.0	14956	0	841.640000	2200.82	4957	0.000000	45.308378	31.20	1	...	13.856	0.148699	0.072851	127.00000	79.0	1	2	0	2	0.9
+89 rows × 21 columns
+
+y1 = y.reindex(X_prob.sort_values(by=['churn_prob'], ascending=False).index)
+y1.head(89).sum()
+89
+X_new = X_prob[X_prob.churn_prob > 0.85]
+#X_new.head()
+X_new = X_new.drop('churn_prob', axis=1)
+X_new.head()
+id	cons_12m	cons_gas_12m	forecast_base_bill_year	forecast_cons_12m	forecast_cons_year	forecast_discount_energy	forecast_price_pow_p1	margin_gross_pow_ele	nb_prod_act	num_years_antig	pow_max	price_p1_var	price_p3_var	modif_to_now	renew_to_now	channel_code	origin_code	hasgas_code	activity_code
+460	0.0	48667	0	335.843857	312.83	0	0.0	44.311378	9.92	1	3	13.200	0.144937	0.072851	800.0	68.0	0	1	0	2
+959	0.0	3857	0	335.843857	583.44	0	0.0	45.806878	18.08	1	4	10.350	0.150822	0.072851	1534.0	70.0	1	1	0	2
+963	0.0	32247	0	335.843857	1596.52	0	0.0	44.311378	12.48	1	3	14.490	0.149682	0.072851	793.0	116.0	3	2	0	2
+1110	0.0	2524	0	335.843857	379.67	0	0.0	44.311378	9.92	1	6	13.200	0.149712	0.072851	2278.0	82.0	1	0	0	2
+1150	0.0	8169	0	0.000000	470.18	0	0.0	44.311378	31.64	1	4	13.856	0.151265	0.072851	553.0	298.0	1	2	0	2
+for col in ['price_p1_var', 'price_p3_var', 'forecast_price_pow_p1']:
+    X_new[col] = X_new[col].apply(lambda x: x*0.8)
+X_new.head()
+id	cons_12m	cons_gas_12m	forecast_base_bill_year	forecast_cons_12m	forecast_cons_year	forecast_discount_energy	forecast_price_pow_p1	margin_gross_pow_ele	nb_prod_act	num_years_antig	pow_max	price_p1_var	price_p3_var	modif_to_now	renew_to_now	channel_code	origin_code	hasgas_code	activity_code
+460	0.0	48667	0	335.843857	312.83	0	0.0	35.449102	9.92	1	3	13.200	0.115950	0.058281	800.0	68.0	0	1	0	2
+959	0.0	3857	0	335.843857	583.44	0	0.0	36.645502	18.08	1	4	10.350	0.120658	0.058281	1534.0	70.0	1	1	0	2
+963	0.0	32247	0	335.843857	1596.52	0	0.0	35.449102	12.48	1	3	14.490	0.119745	0.058281	793.0	116.0	3	2	0	2
+1110	0.0	2524	0	335.843857	379.67	0	0.0	35.449102	9.92	1	6	13.200	0.119769	0.058281	2278.0	82.0	1	0	0	2
+1150	0.0	8169	0	0.000000	470.18	0	0.0	35.449102	31.64	1	4	13.856	0.121012	0.058281	553.0	298.0	1	2	0	2
+X_new['churn'] = randomforest.predict(X_new)
+X_new.churn.sum()
+66
+(89-66)/89
+0.25842696629213485
+66/89
+0.7415730337078652
+df_hi_churn = pd.DataFrame({'with normal price': [100], 'with 20% discount': [74.15730337078652]})
+df_hi_churn.head()
+with 20% discount	with normal price
+0	74.157303	100
+ax = sns.barplot(data=df_hi_churn, 
+                 order=["with normal price", "with 20% discount"], palette="colorblind").set_title("Customers with High Propensity of Churning")
+plt.ylabel('% churned')
+Text(0,0.5,'% churned')
+
+Test data processing
+df11 = pd.read_csv('ml_case_test_data.csv')
+df11.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 4024 entries, 0 to 4023
+Data columns (total 32 columns):
+id                          4024 non-null object
+activity_new                1670 non-null object
+campaign_disc_ele           0 non-null float64
+channel_sales               2968 non-null object
+cons_12m                    4024 non-null int64
+cons_gas_12m                4024 non-null int64
+cons_last_month             4024 non-null int64
+date_activ                  4024 non-null object
+date_end                    4024 non-null object
+date_first_activ            877 non-null object
+date_modif_prod             3979 non-null object
+date_renewal                4020 non-null object
+forecast_base_bill_ele      877 non-null float64
+forecast_base_bill_year     877 non-null float64
+forecast_bill_12m           877 non-null float64
+forecast_cons               877 non-null float64
+forecast_cons_12m           4024 non-null float64
+forecast_cons_year          4024 non-null int64
+forecast_discount_energy    4000 non-null float64
+forecast_meter_rent_12m     4024 non-null float64
+forecast_price_energy_p1    4000 non-null float64
+forecast_price_energy_p2    4000 non-null float64
+forecast_price_pow_p1       4000 non-null float64
+has_gas                     4024 non-null object
+imp_cons                    4024 non-null float64
+margin_gross_pow_ele        4022 non-null float64
+margin_net_pow_ele          4022 non-null float64
+nb_prod_act                 4024 non-null int64
+net_margin                  4021 non-null float64
+num_years_antig             4024 non-null int64
+origin_up                   3997 non-null object
+pow_max                     4023 non-null float64
+dtypes: float64(16), int64(6), object(10)
+memory usage: 848.9+ KB
+df22 = pd.read_csv('ml_case_test_hist_data.csv')
+df22.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 48236 entries, 0 to 48235
+Data columns (total 8 columns):
+id              48236 non-null object
+price_date      48236 non-null object
+price_p1_var    47934 non-null float64
+price_p2_var    47934 non-null float64
+price_p3_var    47934 non-null float64
+price_p1_fix    47934 non-null float64
+price_p2_fix    47934 non-null float64
+price_p3_fix    47934 non-null float64
+dtypes: float64(6), object(2)
+memory usage: 2.6+ MB
+df22_aggregated = df22.groupby(df22['id'], as_index=False).mean()
+df22_aggregated.head()
+id	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix
+0	000381698491fec6983d55828fe5ada6	0.101811	0.090583	0.066138	59.055122	36.417707	8.350996
+1	000861c9aa2a0784b8d83f8b5b95d010	0.124524	0.104134	0.075021	40.661003	24.396601	16.264402
+2	0032d340d01dce810b28c3e2a5446fcc	0.124174	0.103638	0.072865	40.688156	24.412893	16.275263
+3	004a743cb630d0540d8016fc6c898786	0.151425	0.000000	0.000000	44.444710	0.000000	0.000000
+4	007d5d9fbd142235658fe836cfd338fa	0.122726	0.102185	0.072778	40.633851	24.380309	16.253540
+df22_aggregated.astype(bool).sum(axis=0)/16096
+id              0.250000
+price_p1_var    0.249751
+price_p2_var    0.137053
+price_p3_var    0.105492
+price_p1_fix    0.248571
+price_p2_fix    0.105306
+price_p3_fix    0.105306
+dtype: float64
+missing_values_precentage(df11)
+Missing Values	% of Total Values
+id	0	0.000000
+activity_new	2354	58.499006
+campaign_disc_ele	4024	100.000000
+channel_sales	1056	26.242545
+cons_12m	0	0.000000
+cons_gas_12m	0	0.000000
+cons_last_month	0	0.000000
+date_activ	0	0.000000
+date_end	0	0.000000
+date_first_activ	3147	78.205765
+date_modif_prod	45	1.118290
+date_renewal	4	0.099404
+forecast_base_bill_ele	3147	78.205765
+forecast_base_bill_year	3147	78.205765
+forecast_bill_12m	3147	78.205765
+forecast_cons	3147	78.205765
+forecast_cons_12m	0	0.000000
+forecast_cons_year	0	0.000000
+forecast_discount_energy	24	0.596421
+forecast_meter_rent_12m	0	0.000000
+forecast_price_energy_p1	24	0.596421
+forecast_price_energy_p2	24	0.596421
+forecast_price_pow_p1	24	0.596421
+has_gas	0	0.000000
+imp_cons	0	0.000000
+margin_gross_pow_ele	2	0.049702
+margin_net_pow_ele	2	0.049702
+nb_prod_act	0	0.000000
+net_margin	3	0.074553
+num_years_antig	0	0.000000
+origin_up	27	0.670974
+pow_max	1	0.024851
+df33 = df11.sort_values(by=['id'])
+df33.head()
+id	activity_new	campaign_disc_ele	channel_sales	cons_12m	cons_gas_12m	cons_last_month	date_activ	date_end	date_first_activ	...	forecast_price_pow_p1	has_gas	imp_cons	margin_gross_pow_ele	margin_net_pow_ele	nb_prod_act	net_margin	num_years_antig	origin_up	pow_max
+1231	000381698491fec6983d55828fe5ada6	NaN	NaN	lmkebamcaaclubfxadlmueccxoimlema	296024	0	24700	2010-06-25	2016-08-30	2010-06-25	...	58.995952	f	2146.41	-30.84	-30.84	1	1485.32	6	lxidpiddsbxsbosboudacockeimpuepw	200.000
+3983	000861c9aa2a0784b8d83f8b5b95d010	NaN	NaN	usilxuppasemubllopkaafesmlibmsdf	17943	31425	1268	2012-05-22	2016-05-22	2012-05-22	...	40.606701	t	122.01	15.90	15.90	3	224.64	4	lxidpiddsbxsbosboudacockeimpuepw	15.001
+3157	0032d340d01dce810b28c3e2a5446fcc	kkpddsilciodwwwffucmkflilcpfaumo	NaN	NaN	5365	0	594	2004-01-07	2016-03-07	NaN	...	40.606701	f	60.94	34.01	34.01	1	61.63	12	ldkssxwpmemidmecebumciepifcamkci	15.001
+472	004a743cb630d0540d8016fc6c898786	cwofmuicebbcmiaaxufmfimpowpacobu	NaN	usilxuppasemubllopkaafesmlibmsdf	3013	63718	0	2011-11-29	2016-11-29	NaN	...	45.806878	t	0.00	21.78	21.78	2	48.89	4	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.200
+819	007d5d9fbd142235658fe836cfd338fa	NaN	NaN	foosdfpfkusacimwkcsosbicdxkicaua	3718	3147	264	2011-07-05	2016-07-05	NaN	...	40.606701	t	26.21	23.03	23.03	2	41.37	5	lxidpiddsbxsbosboudacockeimpuepw	17.000
+5 rows × 32 columns
+
+df_test = pd.merge(left=df33, right=df22_aggregated, left_on ='id', right_on ='id')
+df_test.head()
+id	activity_new	campaign_disc_ele	channel_sales	cons_12m	cons_gas_12m	cons_last_month	date_activ	date_end	date_first_activ	...	net_margin	num_years_antig	origin_up	pow_max	price_p1_var	price_p2_var	price_p3_var	price_p1_fix	price_p2_fix	price_p3_fix
+0	000381698491fec6983d55828fe5ada6	NaN	NaN	lmkebamcaaclubfxadlmueccxoimlema	296024	0	24700	2010-06-25	2016-08-30	2010-06-25	...	1485.32	6	lxidpiddsbxsbosboudacockeimpuepw	200.000	0.101811	0.090583	0.066138	59.055122	36.417707	8.350996
+1	000861c9aa2a0784b8d83f8b5b95d010	NaN	NaN	usilxuppasemubllopkaafesmlibmsdf	17943	31425	1268	2012-05-22	2016-05-22	2012-05-22	...	224.64	4	lxidpiddsbxsbosboudacockeimpuepw	15.001	0.124524	0.104134	0.075021	40.661003	24.396601	16.264402
+2	0032d340d01dce810b28c3e2a5446fcc	kkpddsilciodwwwffucmkflilcpfaumo	NaN	NaN	5365	0	594	2004-01-07	2016-03-07	NaN	...	61.63	12	ldkssxwpmemidmecebumciepifcamkci	15.001	0.124174	0.103638	0.072865	40.688156	24.412893	16.275263
+3	004a743cb630d0540d8016fc6c898786	cwofmuicebbcmiaaxufmfimpowpacobu	NaN	usilxuppasemubllopkaafesmlibmsdf	3013	63718	0	2011-11-29	2016-11-29	NaN	...	48.89	4	kamkkxfxxuwbdslkwifmmcsiusiuosws	13.200	0.151425	0.000000	0.000000	44.444710	0.000000	0.000000
+4	007d5d9fbd142235658fe836cfd338fa	NaN	NaN	foosdfpfkusacimwkcsosbicdxkicaua	3718	3147	264	2011-07-05	2016-07-05	NaN	...	41.37	5	lxidpiddsbxsbosboudacockeimpuepw	17.000	0.122726	0.102185	0.072778	40.633851	24.380309	16.253540
+5 rows × 38 columns
+
+df_test.drop(['campaign_disc_ele', 'cons_last_month', 'forecast_base_bill_ele', 'forecast_bill_12m', 'forecast_cons', 'net_margin', 
+'imp_cons','forecast_meter_rent_12m', 'forecast_price_energy_p1','forecast_price_energy_p2','margin_net_pow_ele', 
+'price_p3_fix','price_p2_fix','price_p2_var', 'price_p1_fix','date_first_activ','date_activ','date_end'], axis=1, inplace=True)
+df_test.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 4024 entries, 0 to 4023
+Data columns (total 20 columns):
+id                          4024 non-null object
+activity_new                1670 non-null object
+channel_sales               2968 non-null object
+cons_12m                    4024 non-null int64
+cons_gas_12m                4024 non-null int64
+date_modif_prod             3979 non-null object
+date_renewal                4020 non-null object
+forecast_base_bill_year     877 non-null float64
+forecast_cons_12m           4024 non-null float64
+forecast_cons_year          4024 non-null int64
+forecast_discount_energy    4000 non-null float64
+forecast_price_pow_p1       4000 non-null float64
+has_gas                     4024 non-null object
+margin_gross_pow_ele        4022 non-null float64
+nb_prod_act                 4024 non-null int64
+num_years_antig             4024 non-null int64
+origin_up                   3997 non-null object
+pow_max                     4023 non-null float64
+price_p1_var                4024 non-null float64
+price_p3_var                4024 non-null float64
+dtypes: float64(8), int64(5), object(7)
+memory usage: 550.2+ KB
+df_test['channel_sales'].value_counts()
+foosdfpfkusacimwkcsosbicdxkicaua    1791
+lmkebamcaaclubfxadlmueccxoimlema     528
+usilxuppasemubllopkaafesmlibmsdf     392
+ewpakwlliwisiwduibdlfmalxowmwpci     252
+fixdbufsefwooaasfcxdxadsiekoceaa       2
+epumfxlbckeskwekxbiuasklxalciiuu       2
+sddiedcslfslkckwlfkdpoeeailfpeds       1
+Name: channel_sales, dtype: int64
+df_test['channel_sales'].fillna('foosdfpfkusacimwkcsosbicdxkicaua', inplace=True)
+df_test = df_test[~df_test['channel_sales'].isin(['sddiedcslfslkckwlfkdpoeeailfpeds', 
+                                                     'epumfxlbckeskwekxbiuasklxalciiuu', 'fixdbufsefwooaasfcxdxadsiekoceaa'])]
+df_test['channel_sales'].value_counts()
+foosdfpfkusacimwkcsosbicdxkicaua    2847
+lmkebamcaaclubfxadlmueccxoimlema     528
+usilxuppasemubllopkaafesmlibmsdf     392
+ewpakwlliwisiwduibdlfmalxowmwpci     252
+Name: channel_sales, dtype: int64
+df_test['origin_up'].value_counts()
+lxidpiddsbxsbosboudacockeimpuepw    1897
+kamkkxfxxuwbdslkwifmmcsiusiuosws    1162
+ldkssxwpmemidmecebumciepifcamkci     931
+aabpopmuoobccoxasfsksebxoxffdcxs       2
+Name: origin_up, dtype: int64
+df_test['origin_up'].fillna('lxidpiddsbxsbosboudacockeimpuepw', inplace=True)
+df_test = df_test[~df_test['origin_up'].isin(['aabpopmuoobccoxasfsksebxoxffdcxs'])]
+df_test['origin_up'].value_counts()
+lxidpiddsbxsbosboudacockeimpuepw    1924
+kamkkxfxxuwbdslkwifmmcsiusiuosws    1162
+ldkssxwpmemidmecebumciepifcamkci     931
+Name: origin_up, dtype: int64
+df_test['activity_new'].value_counts().head()
+apdekpcbwosbxepsfxclislboipuxpop    396
+kkklcdamwfafdcfwofuscwfwadblfmce    105
+kwuslieomapmswolewpobpplkaooaaew     51
+ckfxocssowaeipxueikxcmaxdmcduxsa     49
+fmwdwsxillemwbbwelxsampiuwwpcdcb     45
+Name: activity_new, dtype: int64
+df_test['activity_new'].fillna('unknown', inplace=True)
+#df_test['activity_new'].value_counts()
+df_test['activity']=df_test.apply(category_resign, axis=1)
+df_test['activity'].value_counts()
+unknown                             3516
+apdekpcbwosbxepsfxclislboipuxpop     396
+kkklcdamwfafdcfwofuscwfwadblfmce     105
+Name: activity, dtype: int64
+### Date data analysis
+for col in ['date_modif_prod', 'date_renewal']:
+    df_test[col] = pd.to_datetime(df_test[col])
+df_test['date_now'] = pd.to_datetime('2016-01-01')
+df_test['modif_to_now'] = df_test['date_now'] - df_test['date_modif_prod']
+df_test['renew_to_now'] = df_test['date_now'] - df_test['date_renewal']
+#df_test.info()
+for col in ['date_modif_prod', 'date_renewal', 'activity_new', 'date_now']:
+    df_test.drop(col, axis=1, inplace=True)
+for col in ['activity', 'channel_sales', 'has_gas', 'origin_up']:
+    df_test[col] = df_test[col].astype('category')
+df_test['modif_to_now'] = df_test['modif_to_now'].dt.days 
+df_test['renew_to_now'] = df_test['renew_to_now'].dt.days 
+df_test = df_test.fillna(df_test.mean())
+df_test.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 4017 entries, 0 to 4023
+Data columns (total 20 columns):
+id                          4017 non-null object
+channel_sales               4017 non-null category
+cons_12m                    4017 non-null int64
+cons_gas_12m                4017 non-null int64
+forecast_base_bill_year     4017 non-null float64
+forecast_cons_12m           4017 non-null float64
+forecast_cons_year          4017 non-null int64
+forecast_discount_energy    4017 non-null float64
+forecast_price_pow_p1       4017 non-null float64
+has_gas                     4017 non-null category
+margin_gross_pow_ele        4017 non-null float64
+nb_prod_act                 4017 non-null int64
+num_years_antig             4017 non-null int64
+origin_up                   4017 non-null category
+pow_max                     4017 non-null float64
+price_p1_var                4017 non-null float64
+price_p3_var                4017 non-null float64
+activity                    4017 non-null category
+modif_to_now                4017 non-null float64
+renew_to_now                4017 non-null float64
+dtypes: category(4), float64(10), int64(5), object(1)
+memory usage: 533.8+ KB
+cat_columns = df_test.select_dtypes(['category']).columns
+cat_columns
+Index(['channel_sales', 'has_gas', 'origin_up', 'activity'], dtype='object')
+from sklearn.preprocessing import LabelEncoder
+
+lb_channel = LabelEncoder()
+df_test['channel_code'] = lb_channel.fit_transform(df_test['channel_sales'])
+df_test[['channel_code', 'channel_sales']].head(11)
+channel_code	channel_sales
+0	2	lmkebamcaaclubfxadlmueccxoimlema
+1	3	usilxuppasemubllopkaafesmlibmsdf
+2	1	foosdfpfkusacimwkcsosbicdxkicaua
+3	3	usilxuppasemubllopkaafesmlibmsdf
+4	1	foosdfpfkusacimwkcsosbicdxkicaua
+5	2	lmkebamcaaclubfxadlmueccxoimlema
+6	1	foosdfpfkusacimwkcsosbicdxkicaua
+7	1	foosdfpfkusacimwkcsosbicdxkicaua
+8	1	foosdfpfkusacimwkcsosbicdxkicaua
+9	1	foosdfpfkusacimwkcsosbicdxkicaua
+10	1	foosdfpfkusacimwkcsosbicdxkicaua
+lb_origin = LabelEncoder()
+df_test['origin_code'] = lb_origin.fit_transform(df_test['origin_up'])
+df_test[['origin_code', 'origin_up']].head()
+origin_code	origin_up
+0	2	lxidpiddsbxsbosboudacockeimpuepw
+1	2	lxidpiddsbxsbosboudacockeimpuepw
+2	1	ldkssxwpmemidmecebumciepifcamkci
+3	0	kamkkxfxxuwbdslkwifmmcsiusiuosws
+4	2	lxidpiddsbxsbosboudacockeimpuepw
+lb_has_gas = LabelEncoder()
+df_test['hasgas_code'] = lb_has_gas.fit_transform(df_test['has_gas'])
+df_test[['hasgas_code', 'has_gas']].head()
+hasgas_code	has_gas
+0	0	f
+1	1	t
+2	0	f
+3	1	t
+4	1	t
+lb_channel = LabelEncoder()
+df_test['activity_code'] = lb_channel.fit_transform(df_test['activity'])
+df_test[['activity_code', 'activity']].head(11)
+activity_code	activity
+0	2	unknown
+1	2	unknown
+2	2	unknown
+3	2	unknown
+4	2	unknown
+5	2	unknown
+6	2	unknown
+7	2	unknown
+8	2	unknown
+9	2	unknown
+10	2	unknown
+df_test.drop(['channel_sales', 'origin_up','activity', 'has_gas'], axis=1, inplace=True)
+df_test.info()
+<class 'pandas.core.frame.DataFrame'>
+Int64Index: 4017 entries, 0 to 4023
+Data columns (total 20 columns):
+id                          4017 non-null object
+cons_12m                    4017 non-null int64
+cons_gas_12m                4017 non-null int64
+forecast_base_bill_year     4017 non-null float64
+forecast_cons_12m           4017 non-null float64
+forecast_cons_year          4017 non-null int64
+forecast_discount_energy    4017 non-null float64
+forecast_price_pow_p1       4017 non-null float64
+margin_gross_pow_ele        4017 non-null float64
+nb_prod_act                 4017 non-null int64
+num_years_antig             4017 non-null int64
+pow_max                     4017 non-null float64
+price_p1_var                4017 non-null float64
+price_p3_var                4017 non-null float64
+modif_to_now                4017 non-null float64
+renew_to_now                4017 non-null float64
+channel_code                4017 non-null int32
+origin_code                 4017 non-null int32
+hasgas_code                 4017 non-null int32
+activity_code               4017 non-null int32
+dtypes: float64(10), int32(4), int64(5), object(1)
+memory usage: 580.6+ KB
+df_test = df_test.apply(pd.to_numeric, errors='coerce')
+df_test.fillna(0, inplace=True)
+df_test3 = df_test_2.drop('churn_proba', axis = 1)
+df_test3['churn'] = randomforest.predict(df_test3)
+df_test3.churn.value_counts()/len(df_test3)
+0    0.881504
+1    0.118496
+Name: churn, dtype: float64
+df_test3_prob = df_test3.drop('churn', axis = 1)
+df_test3_prob['churn_prob'] = randomforest.predict_proba(df_test3_prob)[:, 1]
+df_test3_prob.head()
+id	cons_12m	cons_gas_12m	forecast_base_bill_year	forecast_cons_12m	forecast_cons_year	forecast_discount_energy	forecast_price_pow_p1	margin_gross_pow_ele	nb_prod_act	...	pow_max	price_p1_var	price_p3_var	modif_to_now	renew_to_now	channel_code	origin_code	hasgas_code	activity_code	churn_prob
+0	0.0	296024	0	3824.960000	26891.67	24700	0.0	58.995952	-30.84	1	...	200.000	0.101811	0.066138	854.0	123.0	2	2	0	2	0.7
+1	0.0	17943	31425	213.280000	1726.89	1268	0.0	40.606701	15.90	3	...	15.001	0.124524	0.075021	786.0	192.0	3	2	1	2	0.6
+2	0.0	5365	0	378.922546	556.34	594	0.0	40.606701	34.01	1	...	15.001	0.124174	0.072865	4377.0	298.0	1	1	0	2	0.3
+3	0.0	3013	63718	378.922546	456.03	0	0.0	45.806878	21.78	2	...	13.200	0.151425	0.000000	553.0	32.0	3	0	1	2	0.0
+4	0.0	3718	3147	378.922546	382.86	264	0.0	40.606701	23.03	2	...	17.000	0.122726	0.072778	1641.0	177.0	1	2	1	2	0.3
+5 rows × 21 columns
+
+Randomforest
+df_try1['churn'] = randomforest.predict(df_try1)
+df_try1.churn.value_counts()/len(df_try1)
+0    0.881504
+1    0.118496
+Name: churn, dtype: float64
+labels = 'Churned', 'Not Churned'
+sizes = [1185, 8815]
+colors = ['steelblue', 'seagreen']
+explode = (0.1, 0)  # explode 1st slice
+ 
+# Plot
+plt.pie(sizes, explode=explode, labels=labels, colors=colors,
+        autopct='%1.1f%%', shadow=True, startangle=140)
+ 
+plt.axis('equal')
+plt.show()
